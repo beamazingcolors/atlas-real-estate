@@ -215,14 +215,14 @@ export const PropertyDossierModal: React.FC<DossierModalProps> = ({
               onClick={() => window.print()}
               className="border border-[#755a34] bg-[#755a34] px-4 py-2 font-outfit text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#5e4728]"
             >
-              ⎙ Imprimir / Exportar Dossier PDF
+              Imprimir / Exportar Dossier PDF
             </button>
             <button
               type="button"
               onClick={onClose}
               className="border border-white/30 px-3.5 py-2 font-outfit text-xs uppercase text-white hover:bg-white hover:text-black"
             >
-              Cerrar ✕
+              Cerrar
             </button>
           </div>
         </div>
@@ -328,7 +328,7 @@ export const PropertyDossierModal: React.FC<DossierModalProps> = ({
                   key={am}
                   className="border border-[#1c1b1a]/20 bg-[#f8f9fa] px-3 py-1 font-outfit text-[11px] font-medium text-[#1c1b1a]"
                 >
-                  ✦ {am}
+                  {am}
                 </span>
               ))}
             </div>
@@ -340,7 +340,7 @@ export const PropertyDossierModal: React.FC<DossierModalProps> = ({
                 rel="noreferrer"
                 className="border border-[#1c1b1a] bg-white px-4 py-2.5 font-outfit text-xs font-semibold uppercase tracking-wider text-black hover:bg-[#f2f4f6]"
               >
-                📂 Abrir Google Drive Oficial
+                Abrir Google Drive Oficial
               </a>
               <button
                 type="button"
