@@ -1,3 +1,15 @@
+:root {
+  --color-primary: #000000;
+  --color-primary-container: #1c1b1a;
+  --color-secondary: #755a34;
+  --color-secondary-container: #faeedd;
+  --color-background: #f8f9fa;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eaedf0;
+  --color-tertiary: #004044;
+}
+
 *,
 *::before,
 *::after {
@@ -8,27 +20,33 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: #f5f5f5;
-  color: #0a0a0a;
+  background-color: #f8f9fa;
+  color: #000000;
   font-family:
-    "Inter",
+    "Plus Jakarta Sans",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
-    Roboto,
     sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-.font-mono {
-  font-family:
-    "JetBrains Mono",
-    "SFMono-Regular",
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    monospace;
+.font-outfit {
+  font-family: "Outfit", sans-serif;
+}
+
+.font-jakarta {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 350,
+    "GRAD" 0,
+    "opsz" 20;
+  vertical-align: middle;
+  line-height: 1;
 }
 
 .tabular-nums {
