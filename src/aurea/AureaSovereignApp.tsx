@@ -7,6 +7,7 @@ import {
   CrmStageKey,
   CurrencyCode,
   DriveAuditItem,
+  InteractiveOptionDetail,
   MembershipTier,
   NavSectionId,
   PrivateClient,
@@ -30,6 +31,8 @@ import {
 } from "./storage/useAureaStorage";
 import { AtlasBrandLogo } from "./components/AtlasBrandLogo";
 import {
+  DossierTabKey,
+  OptionDetailModal,
   PhotoCustomizerModal,
   PropertyDossierModal,
   QuickLeadModal,
@@ -115,61 +118,61 @@ class AtlasErrorBoundary extends React.Component<
 }
 
 export const AureaSovereignApp: React.FC = () => {
-  // Estados persistentes en localStorage
+  // Estados persistentes en localStorage (v3 con expedientes reales Google Drive)
   const [properties, setProperties] = usePersistentState<AureaProperty[]>(
-    "proyecto_atlas_properties_v2",
+    "proyecto_atlas_properties_v3",
     INITIAL_PROPERTIES
   );
   const [favorites, setFavorites] = usePersistentState<string[]>(
-    "proyecto_atlas_favorites_v2",
-    ["prop-villa-canto-agua", "prop-sky-penthouse-lumina"]
+    "proyecto_atlas_favorites_v3",
+    ["prop-nautica-residences", "prop-villas-nautica"]
   );
   const [comparedIds, setComparedIds] = usePersistentState<string[]>(
-    "proyecto_atlas_compared_v2",
+    "proyecto_atlas_compared_v3",
     [
-      "prop-villa-canto-agua",
-      "prop-sky-penthouse-lumina",
-      "prop-isla-pok-ta-pok",
+      "prop-nautica-residences",
+      "prop-villas-nautica",
+      "prop-isla-blanca",
     ]
   );
   const [prospects, setProspects] = usePersistentState<CrmProspect[]>(
-    "proyecto_atlas_prospects_v2",
+    "proyecto_atlas_prospects_v3",
     INITIAL_PROSPECTS
   );
   const [clients, setClients] = usePersistentState<PrivateClient[]>(
-    "proyecto_atlas_clients_v2",
+    "proyecto_atlas_clients_v3",
     INITIAL_CLIENTS
   );
   const [appointments, setAppointments] = usePersistentState<VipAppointment[]>(
-    "proyecto_atlas_appointments_v2",
+    "proyecto_atlas_appointments_v3",
     INITIAL_VIP_APPOINTMENTS
   );
   const [brokers, setBrokers] = usePersistentState<BrokerAgentMember[]>(
-    "proyecto_atlas_brokers_v2",
+    "proyecto_atlas_brokers_v3",
     INITIAL_BROKER_TEAM
   );
   const [roundRobinPointer, setRoundRobinPointer] = usePersistentState<number>(
-    "proyecto_atlas_round_robin_ptr_v2",
+    "proyecto_atlas_round_robin_ptr_v3",
     0
   );
   const [driveAudits, setDriveAudits] = usePersistentState<DriveAuditItem[]>(
-    "proyecto_atlas_drive_audits_v2",
+    "proyecto_atlas_drive_audits_v3",
     INITIAL_DRIVE_AUDITS
   );
   const [securityLogs, setSecurityLogs] = usePersistentState<
     SecurityAuditEvent[]
-  >("proyecto_atlas_security_logs_v2", INITIAL_SECURITY_LOGS);
+  >("proyecto_atlas_security_logs_v3", INITIAL_SECURITY_LOGS);
   const [currency, setCurrency] = usePersistentState<CurrencyCode>(
-    "proyecto_atlas_currency_v2",
+    "proyecto_atlas_currency_v3",
     "USD"
   );
   const [membershipTier, setMembershipTier] =
     usePersistentState<MembershipTier>(
-      "proyecto_atlas_membership_tier_v2",
+      "proyecto_atlas_membership_tier_v3",
       "AGENCIA_CORPORATIVA"
     );
   const [whiteLabel, setWhiteLabel] = usePersistentState<WhiteLabelConfig>(
-    "proyecto_atlas_whitelabel_v2",
+    "proyecto_atlas_whitelabel_v3",
     {
       agencyName: "PROYECTO ATLAS",
       monogram: "PA",
@@ -179,7 +182,7 @@ export const AureaSovereignApp: React.FC = () => {
     }
   );
   const [isDarkMode, setIsDarkMode] = usePersistentState<boolean>(
-    "proyecto_atlas_dark_mode_v2",
+    "proyecto_atlas_dark_mode_v3",
     false
   );
 
@@ -196,6 +199,10 @@ export const AureaSovereignApp: React.FC = () => {
   );
   const [dossierModalProp, setDossierModalProp] =
     useState<AureaProperty | null>(null);
+  const [dossierInitialTab, setDossierInitialTab] =
+    useState<DossierTabKey>("GALLERY");
+  const [optionDetailModal, setOptionDetailModal] =
+    useState<InteractiveOptionDetail | null>(null);
   const [quickLeadModalOpen, setQuickLeadModalOpen] = useState(false);
 
   // Exit-Intent / Concierge Modal & Validación de Error
@@ -206,6 +213,37 @@ export const AureaSovereignApp: React.FC = () => {
   const [conciergeSuccess, setConciergeSuccess] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const profileContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleOpenDossierModal = (
+    prop: AureaProperty,
+    tab: DossierTabKey = "GALLERY"
+  ) => {
+    setDossierInitialTab(tab);
+    setDossierModalProp(prop);
+  };
+
+  // Cerrar dropdowns al hacer clic en el vacío (fuera del contenedor)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(target)
+      ) {
+        setSearchDropdownOpen(false);
+      }
+      if (
+        profileContainerRef.current &&
+        !profileContainerRef.current.contains(target)
+      ) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Sincronización del Modo Oscuro con <html>
   useEffect(() => {
@@ -795,7 +833,7 @@ export const AureaSovereignApp: React.FC = () => {
                 </span>
               </button>
 
-              <div className="relative w-full max-w-md">
+              <div ref={searchContainerRef} className="relative w-full max-w-md">
                 <div
                   className={`flex items-center border px-3 py-2 ${
                     isDarkMode
@@ -840,7 +878,7 @@ export const AureaSovereignApp: React.FC = () => {
                         key={prop.id}
                         type="button"
                         onClick={() => {
-                          setDossierModalProp(prop);
+                          handleOpenDossierModal(prop, "GALLERY");
                           setSearchDropdownOpen(false);
                         }}
                         className="flex w-full items-center justify-between px-2.5 py-2 text-left text-xs hover:bg-[#0077cc]/10"
@@ -933,7 +971,7 @@ export const AureaSovereignApp: React.FC = () => {
               </button>
 
               {/* Menú de Perfil Rápido (CEO Andre Fraga) */}
-              <div className="relative">
+              <div ref={profileContainerRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setProfileMenuOpen((v) => !v)}
@@ -1028,7 +1066,8 @@ export const AureaSovereignApp: React.FC = () => {
                 currency={currency}
                 isDarkMode={isDarkMode}
                 onNavigate={(sec) => handleSelectNav(sec)}
-                onOpenDossier={(prop) => setDossierModalProp(prop)}
+                onOpenDossier={(prop, tab) => handleOpenDossierModal(prop, tab)}
+                onOpenOptionDetail={(detail) => setOptionDetailModal(detail)}
                 onOpenExitConcierge={() => setExitConciergeOpen(true)}
               />
             )}
@@ -1042,7 +1081,9 @@ export const AureaSovereignApp: React.FC = () => {
                 currency={currency}
                 onToggleFavorite={handleToggleFavorite}
                 onOpenPhotoModal={(prop) => setPhotoModalProp(prop)}
-                onOpenDossierModal={(prop) => setDossierModalProp(prop)}
+                onOpenDossierModal={(prop, tab) =>
+                  handleOpenDossierModal(prop, tab)
+                }
                 onAddAppointment={(appt) =>
                   setAppointments((prev) => [appt, ...prev])
                 }
@@ -1060,7 +1101,9 @@ export const AureaSovereignApp: React.FC = () => {
                 onToggleFavorite={handleToggleFavorite}
                 onToggleCompare={handleToggleCompare}
                 onOpenPhotoModal={(prop) => setPhotoModalProp(prop)}
-                onOpenDossierModal={(prop) => setDossierModalProp(prop)}
+                onOpenDossierModal={(prop, tab) =>
+                  handleOpenDossierModal(prop, tab)
+                }
               />
             )}
 
@@ -1075,7 +1118,9 @@ export const AureaSovereignApp: React.FC = () => {
                 onToggleFavorite={handleToggleFavorite}
                 onToggleCompare={handleToggleCompare}
                 onOpenPhotoModal={(prop) => setPhotoModalProp(prop)}
-                onOpenDossierModal={(prop) => setDossierModalProp(prop)}
+                onOpenDossierModal={(prop, tab) =>
+                  handleOpenDossierModal(prop, tab)
+                }
               />
             )}
 
@@ -1085,7 +1130,9 @@ export const AureaSovereignApp: React.FC = () => {
                 comparedIds={comparedIds}
                 currency={currency}
                 onToggleCompare={handleToggleCompare}
-                onOpenDossierModal={(prop) => setDossierModalProp(prop)}
+                onOpenDossierModal={(prop, tab) =>
+                  handleOpenDossierModal(prop, tab)
+                }
               />
             )}
 
@@ -1106,7 +1153,7 @@ export const AureaSovereignApp: React.FC = () => {
                 currency={currency}
                 onUpdateClientTag={handleUpdateClientTag}
                 onToggleClientProperty={handleToggleClientProperty}
-                onOpenDossier={(prop) => setDossierModalProp(prop)}
+                onOpenDossier={(prop) => handleOpenDossierModal(prop, "GALLERY")}
               />
             )}
 
@@ -1212,10 +1259,14 @@ export const AureaSovereignApp: React.FC = () => {
           </span>
         </button>
 
-        {/* MODAL DE EXIT-INTENT & SOLICITUD DE DOSSIER CON VALIDACIÓN DE ERROR */}
+        {/* MODAL DE EXIT-INTENT & SOLICITUD DE DOSSIER CON VALIDACIÓN DE ERROR Y CLICK AL VACÍO */}
         {exitConciergeOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
+          <div
+            onClick={() => setExitConciergeOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs"
+          >
             <div
+              onClick={(e) => e.stopPropagation()}
               className={`w-full max-w-lg border p-8 shadow-2xl ${
                 isDarkMode
                   ? "border-slate-700 bg-[#0c1524] text-white"
@@ -1317,10 +1368,19 @@ export const AureaSovereignApp: React.FC = () => {
             }
             currency={currency}
             whiteLabel={whiteLabel}
+            initialTab={dossierInitialTab}
             onClose={() => setDossierModalProp(null)}
             onScheduleVisit={() => {
               setQuickLeadModalOpen(true);
             }}
+          />
+        )}
+
+        {optionDetailModal && (
+          <OptionDetailModal
+            detail={optionDetailModal}
+            onClose={() => setOptionDetailModal(null)}
+            onNavigate={(sec) => handleSelectNav(sec)}
           />
         )}
 

@@ -8,6 +8,8 @@ import {
   VipAppointment,
 } from "../types";
 import { formatSovereignCurrency } from "../storage/useAureaStorage";
+import { DossierTabKey } from "../components/SovereignModals";
+import { RealInteractiveMap } from "../components/RealInteractiveMap";
 
 interface ExecutiveDashboardProps {
   properties: AureaProperty[];
@@ -17,17 +19,20 @@ interface ExecutiveDashboardProps {
   currency: CurrencyCode;
   onToggleFavorite: (id: string) => void;
   onOpenPhotoModal: (property: AureaProperty) => void;
-  onOpenDossierModal: (property: AureaProperty) => void;
+  onOpenDossierModal: (
+    property: AureaProperty,
+    initialTab?: DossierTabKey
+  ) => void;
   onAddAppointment: (appt: VipAppointment) => void;
   onNavigateSection: (section: "inventory" | "crm" | "comparator") => void;
 }
 
 const ZONES_LIST: SovereignZone[] = [
-  "Puerto Cancún",
   "Cancún Zona Hotelera",
   "Isla Pok Ta Pok",
-  "Riviera Maya",
+  "Puerto Cancún",
   "Playa del Carmen",
+  "Riviera Maya",
 ];
 
 export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
@@ -43,17 +48,27 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
   onNavigateSection,
 }) => {
   const [subView, setSubView] = useState<"COMMAND" | "CARTOGRAPHY">("COMMAND");
-  const [selectedMapZone, setSelectedMapZone] = useState<SovereignZone | "ALL">("ALL");
+  const [selectedMapZone, setSelectedMapZone] = useState<
+    SovereignZone | "ALL"
+  >("ALL");
   const [selectedMapProp, setSelectedMapProp] = useState<AureaProperty>(
     properties[0]
   );
-  const [intelligenceDeckToast, setIntelligenceDeckToast] = useState<string | null>(
-    null
-  );
+  const [intelligenceDeckToast, setIntelligenceDeckToast] = useState<
+    string | null
+  >(null);
 
   const flagshipProperties = useMemo(
     () => properties.filter((p) => p.isFlagship),
     [properties]
+  );
+
+  const mapFilteredProperties = useMemo(
+    () =>
+      properties.filter(
+        (p) => selectedMapZone === "ALL" || p.zone === selectedMapZone
+      ),
+    [properties, selectedMapZone]
   );
 
   // Mini-Kanban de 4 etapas ejecutivas
@@ -64,7 +79,8 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
         badge: "ETAPA 01",
         items: prospects.filter(
           (p) =>
-            p.stage === "CONTACTO_INICIAL" || p.stage === "CALIFICACION_PATRIMONIAL"
+            p.stage === "CONTACTO_INICIAL" ||
+            p.stage === "CALIFICACION_PATRIMONIAL"
         ),
       },
       {
@@ -77,7 +93,8 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
         badge: "ETAPA 03",
         items: prospects.filter(
           (p) =>
-            p.stage === "RECORRIDO_PRESENCIAL" || p.stage === "NEGOCIACION_OFERTA"
+            p.stage === "RECORRIDO_PRESENCIAL" ||
+            p.stage === "NEGOCIACION_OFERTA"
         ),
       },
       {
@@ -95,13 +112,13 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
       minute: "2-digit",
     });
     setIntelligenceDeckToast(
-      `Dossier Patrimonial Proyecto Atlas Intelligence compilado (${timestamp}) con ${flagshipProperties.length} activos insignia en divisa ${currency}. Abriendo vista de presentación...`
+      `Dossier Patrimonial Proyecto Atlas Intelligence compilado (${timestamp}) con ${flagshipProperties.length} activos insignia en divisa ${currency}. Abriendo expediente...`
     );
     setTimeout(() => {
       if (flagshipProperties[0]) {
-        onOpenDossierModal(flagshipProperties[0]);
+        onOpenDossierModal(flagshipProperties[0], "GALLERY");
       }
-    }, 600);
+    }, 500);
   };
 
   return (
@@ -115,43 +132,45 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
           <h1 className="font-outfit text-2xl font-bold tracking-tight text-black">
             {subView === "COMMAND"
               ? "Centro de Mando Ejecutivo — Proyecto Atlas"
-              : "Cartografía Soberana & Matriz de Preventas Cancún"}
+              : "Mapa Real Interactivo & Matriz de Preventas Cancún"}
           </h1>
         </div>
 
-        <div className="flex border border-[#1c1b1a] bg-[#f8f9fa] p-0.5">
+        <div className="flex border border-[#091e3a] bg-[#f8f9fa] p-0.5">
           <button
             type="button"
             onClick={() => setSubView("COMMAND")}
             className={`px-5 py-2 font-outfit text-xs font-semibold uppercase tracking-wider transition-all ${
               subView === "COMMAND"
-                ? "bg-[#000000] text-[#faeedd]"
-                : "text-[#1c1b1a] hover:bg-white"
+                ? "bg-[#091e3a] text-white"
+                : "text-[#091e3a] hover:bg-white"
             }`}
           >
-            ◈ Mando Ejecutivo
+            Mando Ejecutivo
           </button>
           <button
             type="button"
             onClick={() => setSubView("CARTOGRAPHY")}
             className={`px-5 py-2 font-outfit text-xs font-semibold uppercase tracking-wider transition-all ${
               subView === "CARTOGRAPHY"
-                ? "bg-[#000000] text-[#faeedd]"
-                : "text-[#1c1b1a] hover:bg-white"
+                ? "bg-[#091e3a] text-white"
+                : "text-[#091e3a] hover:bg-white"
             }`}
           >
-            ⌖ Cartografía & Preventas Cancún
+            Mapa Real &amp; Preventas Cancún
           </button>
         </div>
       </div>
 
       {intelligenceDeckToast && (
-        <div className="flex items-center justify-between border border-[#755a34] bg-[#1c1b1a] px-6 py-3.5 text-xs text-[#faeedd]">
-          <span className="font-outfit tracking-wide">✦ {intelligenceDeckToast}</span>
+        <div className="flex items-center justify-between border border-[#755a34] bg-[#091e3a] px-6 py-3.5 text-xs text-white">
+          <span className="font-outfit tracking-wide">
+            {intelligenceDeckToast}
+          </span>
           <button
             type="button"
             onClick={() => setIntelligenceDeckToast(null)}
-            className="border border-[#faeedd]/30 px-2.5 py-0.5 font-outfit text-[10px] uppercase"
+            className="border border-white/30 px-2.5 py-0.5 font-outfit text-[10px] uppercase"
           >
             Cerrar
           </button>
@@ -160,32 +179,40 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
 
       {subView === "COMMAND" ? (
         <>
-          {/* 4 KPIs Ejecutivos */}
+          {/* 4 KPIs Ejecutivos como Botones Interactivos */}
           <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <div className="border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <button
+              type="button"
+              onClick={() => onNavigateSection("inventory")}
+              className="border border-[#eaedf0] bg-white p-6 text-left shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:border-[#091e3a]"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-outfit text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
                   Volumen en Cartera Gestionada
                 </span>
-                <span className="bg-[#faeedd] px-2 py-0.5 font-outfit text-[10px] font-bold text-[#755a34]">
-                  AUM ACTIVO
+                <span className="font-outfit text-[10px] font-bold text-[#755a34]">
+                  AUM ACTIVO →
                 </span>
               </div>
               <div className="mt-3 font-outfit text-3xl font-bold tracking-tight text-black">
                 {formatSovereignCurrency(48500000, currency, true)}
               </div>
               <p className="mt-1.5 text-xs text-neutral-500">
-                +18.4% vs. trimestre anterior · Mandatos exclusivos
+                Nautica · The Villas · Isla Blanca · Hodela · Prana
               </p>
-            </div>
+            </button>
 
-            <div className="border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <button
+              type="button"
+              onClick={() => onNavigateSection("crm")}
+              className="border border-[#eaedf0] bg-white p-6 text-left shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:border-[#091e3a]"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-outfit text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
                   Comisiones Proyectadas (5%)
                 </span>
-                <span className="bg-[#004044]/10 px-2 py-0.5 font-outfit text-[10px] font-bold text-[#004044]">
-                  FEE NETO
+                <span className="font-outfit text-[10px] font-bold text-[#004044]">
+                  PIPELINE CRM →
                 </span>
               </div>
               <div className="mt-3 font-outfit text-3xl font-bold tracking-tight text-[#755a34]">
@@ -194,41 +221,52 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
               <p className="mt-1.5 text-xs text-neutral-500">
                 Sobre cierres en Due Diligence y Firma Notarial
               </p>
-            </div>
+            </button>
 
-            <div className="border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <button
+              type="button"
+              onClick={() =>
+                onOpenDossierModal(properties[0], "INVENTORY")
+              }
+              className="border border-[#eaedf0] bg-white p-6 text-left shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:border-[#091e3a]"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-outfit text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                  Preventas Activas Oficiales
+                  Expedientes Google Drive
                 </span>
-                <span className="border border-[#1c1b1a]/20 px-2 py-0.5 font-outfit text-[10px] font-bold text-[#1c1b1a]">
-                  DRIVE AUDITADO
+                <span className="font-outfit text-[10px] font-bold text-[#0077cc]">
+                  VER INVENTARIO →
                 </span>
               </div>
               <div className="mt-3 font-outfit text-3xl font-bold tracking-tight text-black">
-                14 Desarrollos
+                {properties.reduce((acc, p) => acc + p.availableUnits, 0)}{" "}
+                Unidades
               </div>
               <p className="mt-1.5 text-xs text-neutral-500">
-                Puerto Cancún · Zona Hotelera · Pok Ta Pok · Riviera Maya
+                Fotos, Brochures, Precios, Planes de Pago y Fichas
               </p>
-            </div>
+            </button>
 
-            <div className="border border-[#1c1b1a] bg-[#1c1b1a] p-6 text-white shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <button
+              type="button"
+              onClick={() => setSubView("CARTOGRAPHY")}
+              className="border border-[#091e3a] bg-[#091e3a] p-6 text-left text-white shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:bg-[#0d284c]"
+            >
               <div className="flex items-center justify-between">
-                <span className="font-outfit text-[11px] font-semibold uppercase tracking-[0.18em] text-[#faeedd]/80">
-                  Conversión a Visitas Privadas
+                <span className="font-outfit text-[11px] font-semibold uppercase tracking-[0.18em] text-[#00b4f5]">
+                  Mapa Satelital Interactivo
                 </span>
-                <span className="border border-[#755a34] bg-[#755a34]/20 px-2 py-0.5 font-outfit text-[10px] font-bold text-[#faeedd]">
-                  VIP PROTOCOL
+                <span className="font-outfit text-[10px] font-bold text-[#faeedd]">
+                  ABRIR MAPA →
                 </span>
               </div>
               <div className="mt-3 font-outfit text-3xl font-bold tracking-tight text-white">
-                32.4%
+                GPS en Vivo
               </div>
-              <p className="mt-1.5 text-xs text-neutral-400">
-                Calificación patrimonial previa y traslado privado
+              <p className="mt-1.5 text-xs text-slate-300">
+                Laguna Nichupté · Huayacán · Playa del Carmen
               </p>
-            </div>
+            </button>
           </section>
 
           {/* Propiedades Insignia en Cartera */}
@@ -236,22 +274,22 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.22em] text-[#755a34]">
-                  TROPHY ASSETS PORTFOLIO
+                  TROPHY ASSETS PORTFOLIO · GOOGLE DRIVE SINCRONIZADO
                 </span>
                 <h2 className="font-outfit text-xl font-bold text-black">
-                  Propiedades Insignia en Cartera Soberana
+                  Desarrollos Insignia con Expediente Completo en Mano
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigateSection("inventory")}
-                className="border border-[#1c1b1a] bg-white px-4 py-2 font-outfit text-xs font-semibold uppercase tracking-wider text-black hover:bg-[#000000] hover:text-white"
+                className="border border-[#091e3a] bg-white px-4 py-2 font-outfit text-xs font-semibold uppercase tracking-wider text-black hover:bg-[#091e3a] hover:text-white"
               >
                 Explorar Inventario Completo ({properties.length}) →
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {flagshipProperties.map((prop) => {
                 const imgUrl = prop.customImageUrl ?? prop.defaultImageUrl;
                 const isFav = favorites.includes(prop.id);
@@ -259,24 +297,23 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                 return (
                   <div
                     key={prop.id}
-                    className="group flex flex-col justify-between border border-[#eaedf0] bg-white shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition-all hover:border-[#755a34]"
+                    className="group flex flex-col justify-between border border-[#eaedf0] bg-white shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition-all hover:border-[#091e3a]"
                   >
                     <div>
-                      {/* Fotografía con controles flotantes */}
-                      <div className="relative h-64 w-full overflow-hidden bg-[#1c1b1a]">
+                      <div className="relative h-60 w-full overflow-hidden bg-[#091e3a]">
                         <img
                           src={imgUrl}
                           alt={prop.name}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                         <div className="absolute left-4 top-4 flex items-center gap-2">
-                          <span className="bg-[#000000] px-3 py-1 font-outfit text-[10px] font-semibold uppercase tracking-[0.18em] text-[#faeedd]">
+                          <span className="bg-[#091e3a] px-3 py-1 font-outfit text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
                             {prop.zone}
                           </span>
                           <span className="bg-[#004044] px-2.5 py-1 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white">
-                            ROI {prop.roiAnnualPct}% ANUAL
+                            ROI {prop.roiAnnualPct}%
                           </span>
                         </div>
 
@@ -284,9 +321,9 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => onOpenPhotoModal(prop)}
-                            className="border border-white/40 bg-black/80 px-3 py-1.5 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#faeedd] backdrop-blur-sm transition-colors hover:bg-[#755a34] hover:text-white"
+                            className="border border-white/40 bg-black/80 px-3 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm transition-colors hover:bg-[#755a34]"
                           >
-                            📷 Cambiar Foto
+                            Cambiar Foto
                           </button>
                           <button
                             type="button"
@@ -304,70 +341,89 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
 
                         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
                           <div>
-                            <span className="font-outfit text-[10px] uppercase tracking-[0.2em] text-[#faeedd]">
-                              {prop.code} · {prop.deliveryStatus}
+                            <span className="font-outfit text-[10px] uppercase tracking-[0.2em] text-[#00b4f5]">
+                              {prop.code} · {prop.availableUnits} Unidades Disp.
                             </span>
-                            <h3 className="font-outfit text-2xl font-bold">
+                            <h3 className="font-outfit text-lg font-bold">
                               {prop.name}
                             </h3>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-outfit text-xl font-bold text-[#faeedd]">
-                              {formatSovereignCurrency(prop.priceUsd, currency)}
-                            </div>
-                            <span className="font-outfit text-[11px] text-neutral-300">
-                              {prop.areaM2} m² · {prop.bedrooms} Rec · Comisión{" "}
-                              {prop.brokerCommissionPct}%
-                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="p-6">
-                        <p className="text-xs font-medium text-[#1c1b1a]">
+                      <div className="p-5">
+                        <div className="flex items-baseline justify-between border-b border-[#eaedf0] pb-3">
+                          <span className="font-outfit text-xs text-neutral-500">
+                            Desde ({prop.areaM2} m²)
+                          </span>
+                          <span className="font-outfit text-lg font-bold text-[#091e3a]">
+                            {formatSovereignCurrency(prop.priceUsd, currency)}
+                          </span>
+                        </div>
+
+                        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-neutral-600">
                           {prop.subtitle}
                         </p>
-                        <p className="mt-2 text-xs leading-relaxed text-neutral-600">
-                          {prop.architecturalDigest}
-                        </p>
 
-                        <div className="mt-4 flex flex-wrap gap-1.5">
-                          {prop.amenities.slice(0, 4).map((amenity) => (
-                            <span
-                              key={amenity}
-                              className="border border-[#eaedf0] bg-[#f8f9fa] px-2.5 py-1 font-outfit text-[10px] font-medium text-neutral-700"
-                            >
-                              {amenity}
-                            </span>
-                          ))}
+                        {/* Botonera Directa a las 5 Secciones del Google Drive */}
+                        <div className="mt-4 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                          <button
+                            type="button"
+                            onClick={() => onOpenDossierModal(prop, "GALLERY")}
+                            className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2.5 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                          >
+                            Fotos ({prop.galleryImages?.length ?? 1})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenDossierModal(prop, "BROCHURES")
+                            }
+                            className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2.5 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                          >
+                            Brochure ({prop.brochures?.length ?? 1})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenDossierModal(prop, "INVENTORY")
+                            }
+                            className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2.5 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                          >
+                            Inventario ({prop.inventoryUnits?.length ?? 1})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenDossierModal(prop, "PAYMENT_PLANS")
+                            }
+                            className="border border-[#755a34]/40 bg-[#faeedd]/50 px-2.5 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#755a34] hover:bg-[#755a34] hover:text-white"
+                          >
+                            Planes de Pago
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenDossierModal(prop, "TECH_SPECS")
+                            }
+                            className="col-span-2 sm:col-span-1 border border-[#0077cc]/30 bg-[#0077cc]/5 px-2.5 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#0077cc] hover:bg-[#0077cc] hover:text-white"
+                          >
+                            Fichas Técnicas
+                          </button>
                         </div>
                       </div>
                     </div>
 
-                    {/* Botonera de 4 acciones directas */}
-                    <div className="grid grid-cols-2 gap-2 border-t border-[#eaedf0] bg-[#f8f9fa] p-4 sm:grid-cols-4">
-                      <button
-                        type="button"
-                        onClick={() => onOpenDossierModal(prop)}
-                        className="border border-[#1c1b1a] bg-white px-3 py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-black hover:bg-[#000000] hover:text-white"
-                      >
-                        Ficha Técnica
-                      </button>
+                    {/* Botonera inferior */}
+                    <div className="grid grid-cols-2 gap-2 border-t border-[#eaedf0] bg-[#f8f9fa] p-3">
                       <a
                         href={prop.driveFolderUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-center border border-[#eaedf0] bg-white px-3 py-2 text-center font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#1c1b1a] hover:border-[#755a34]"
+                        className="flex items-center justify-center border border-[#eaedf0] bg-white px-3 py-2 text-center font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:border-[#091e3a]"
                       >
-                        Google Drive
+                        Abrir Drive Oficial ↗
                       </a>
-                      <button
-                        type="button"
-                        onClick={() => onOpenDossierModal(prop)}
-                        className="border border-[#755a34] bg-[#faeedd]/60 px-3 py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#755a34] hover:bg-[#755a34] hover:text-white"
-                      >
-                        Dossier PDF
-                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -382,9 +438,9 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                             status: "Confirmada",
                           });
                         }}
-                        className="bg-[#000000] px-3 py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#faeedd] hover:bg-[#004044]"
+                        className="bg-[#091e3a] px-3 py-2 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-[#755a34]"
                       >
-                        Agendar Visita
+                        Agendar Visita VIP
                       </button>
                     </div>
                   </div>
@@ -393,10 +449,9 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
             </div>
           </section>
 
-          {/* Fila Inferior: Embudo Comercial Activo (Mini-Kanban 4 etapas) + Agenda VIP & AUREA Intelligence */}
+          {/* Fila Inferior: Embudo Comercial Activo + Agenda VIP & Proyecto Atlas Intelligence */}
           <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            {/* Mini-Kanban de 4 Etapas */}
-            <div className="xl:col-span-8 border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <div className="border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)] xl:col-span-8">
               <div className="flex items-center justify-between border-b border-[#eaedf0] pb-4">
                 <div>
                   <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
@@ -425,7 +480,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                       <span className="font-outfit text-[10px] font-bold uppercase tracking-wider text-[#755a34]">
                         {col.badge}
                       </span>
-                      <span className="bg-[#000000] px-2 py-0.5 font-outfit text-[10px] font-bold text-white">
+                      <span className="bg-[#091e3a] px-2 py-0.5 font-outfit text-[10px] font-bold text-white">
                         {col.items.length}
                       </span>
                     </div>
@@ -446,7 +501,11 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                             {item.interestedPropertyName}
                           </div>
                           <div className="mt-2 font-outfit text-xs font-bold text-[#004044]">
-                            {formatSovereignCurrency(item.budgetUsd, currency, true)}
+                            {formatSovereignCurrency(
+                              item.budgetUsd,
+                              currency,
+                              true
+                            )}
                           </div>
                         </div>
                       ))}
@@ -456,8 +515,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
               </div>
             </div>
 
-            {/* Próximas Citas VIP + Herramienta AUREA Intelligence */}
-            <div className="xl:col-span-4 flex flex-col justify-between space-y-6">
+            <div className="flex flex-col justify-between space-y-6 xl:col-span-4">
               <div className="border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center justify-between border-b border-[#eaedf0] pb-3">
                   <div>
@@ -465,7 +523,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                       CONCIERGE PROTOCOL
                     </span>
                     <h3 className="font-outfit text-base font-bold text-black">
-                      Próximas Citas & Agenda VIP
+                      Próximas Citas &amp; Agenda VIP
                     </h3>
                   </div>
                   <span className="bg-[#faeedd] px-2.5 py-1 font-outfit text-[10px] font-bold text-[#755a34]">
@@ -500,7 +558,6 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                 </div>
               </div>
 
-              {/* Proyecto Atlas Intelligence */}
               <div className="border border-[#0077cc]/40 bg-[#091e3a] p-6 text-white shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
                 <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.24em] text-[#00c2ff]">
                   PROYECTO ATLAS INTELLIGENCE ENGINE
@@ -509,8 +566,8 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                   Generador Express de Presentaciones Patrimoniales
                 </h3>
                 <p className="mt-2 text-xs leading-relaxed text-neutral-300">
-                  Compila en un clic un pitchbook institucional con proyecciones de Cap
-                  Rate, plusvalía a 5 años y estructura fiduciaria en la divisa activa (
+                  Compila en un clic el expediente de Google Drive con inventario,
+                  planes de pago y fichas técnicas en la divisa activa (
                   {currency}).
                 </p>
                 <button
@@ -518,23 +575,23 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                   onClick={handleGenerateExpressDeck}
                   className="mt-4 w-full bg-[#755a34] px-4 py-3 font-outfit text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#faeedd] hover:text-black"
                 >
-                  ✦ Generar Presentación Patrimonial (1-Clic)
+                  Generar Presentación Patrimonial (1-Clic)
                 </button>
               </div>
             </div>
           </section>
         </>
       ) : (
-        /* SUB-VISTA: CARTOGRAFÍA & PREVENTAS CANCÚN */
+        /* SUB-VISTA: MAPA REAL E INTERACTIVO & PREVENTAS CANCÚN */
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-7 border border-[#eaedf0] bg-[#1c1b1a] p-6 text-white">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div className="border border-[#eaedf0] bg-[#091322] p-6 text-white lg:col-span-8">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
               <div>
-                <span className="font-outfit text-[10px] uppercase tracking-[0.2em] text-[#faeedd]">
-                  SOVEREIGN GEOSPATIAL MATRIX
+                <span className="font-outfit text-[10px] uppercase tracking-[0.2em] text-[#00b4f5]">
+                  MAPA REAL INTERACTIVO (LEAFLET + ESRI SATÉLITE)
                 </span>
                 <h3 className="font-outfit text-lg font-bold">
-                  Corredor Cancún — Puerto Cancún — Riviera Maya
+                  Corredor Cancún — Laguna Nichupté — Huayacán — Playa del Carmen
                 </h3>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -547,13 +604,17 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                       : "bg-white/10 text-neutral-300"
                   }`}
                 >
-                  Todas
+                  Todas ({properties.length})
                 </button>
                 {ZONES_LIST.map((z) => (
                   <button
                     key={z}
                     type="button"
-                    onClick={() => setSelectedMapZone(z)}
+                    onClick={() => {
+                      setSelectedMapZone(z);
+                      const firstInZone = properties.find((p) => p.zone === z);
+                      if (firstInZone) setSelectedMapProp(firstInZone);
+                    }}
                     className={`px-2.5 py-1 font-outfit text-[10px] uppercase ${
                       selectedMapZone === z
                         ? "bg-[#755a34] text-white"
@@ -566,124 +627,131 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
               </div>
             </div>
 
-            {/* Lienzo Cartográfico Interactivo */}
-            <div className="relative mt-4 h-[420px] w-full overflow-hidden border border-white/15 bg-[#0a191e]">
-              {/* Retícula Cartográfica SVG */}
-              <svg
-                viewBox="0 0 800 450"
-                className="h-full w-full opacity-40"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <pattern
-                    id="sovereign-grid"
-                    width="40"
-                    height="40"
-                    patternUnits="userSpaceOnUse"
-                  >
-                    <path
-                      d="M 40 0 L 0 0 0 40"
-                      fill="none"
-                      stroke="#004044"
-                      strokeWidth="1"
-                    />
-                  </pattern>
-                </defs>
-                <rect width="800" height="450" fill="url(#sovereign-grid)" />
-                {/* Contorno estilizado de la costa del Caribe Mexicano e Isla Cancún */}
-                <path
-                  d="M 120 420 Q 260 350 380 260 T 520 110 L 660 150 L 630 220 L 540 210 Z"
-                  fill="#1c1b1a"
-                  stroke="#755a34"
-                  strokeWidth="2"
-                />
-              </svg>
-
-              <div className="absolute left-4 top-4 bg-black/80 px-3 py-1.5 font-outfit text-[10px] uppercase tracking-widest text-[#faeedd]">
-                MAR CARIBE · ZONA FEDERAL MARÍTIMO TERRESTRE
-              </div>
-
-              {/* Marcadores interactivos de desarrollos */}
-              {properties
-                .filter(
-                  (p) => selectedMapZone === "ALL" || p.zone === selectedMapZone
-                )
-                .map((prop) => {
-                  const isCurrent = selectedMapProp.id === prop.id;
-                  return (
-                    <button
-                      key={prop.id}
-                      type="button"
-                      style={{
-                        left: `${prop.coordinates.mapX}%`,
-                        top: `${prop.coordinates.mapY}%`,
-                      }}
-                      onClick={() => setSelectedMapProp(prop)}
-                      className={`absolute -translate-x-1/2 -translate-y-1/2 border px-3 py-1.5 font-outfit text-[11px] font-semibold transition-all ${
-                        isCurrent
-                          ? "z-20 scale-110 border-[#faeedd] bg-[#755a34] text-white shadow-lg"
-                          : "z-10 border-[#755a34] bg-black/90 text-[#faeedd] hover:scale-105"
-                      }`}
-                    >
-                      ◈ {prop.name} ({prop.roiAnnualPct}% ROI)
-                    </button>
-                  );
-                })}
-            </div>
+            <RealInteractiveMap
+              properties={mapFilteredProperties}
+              selectedProperty={selectedMapProp}
+              currency={currency}
+              onSelectProperty={(p) => setSelectedMapProp(p)}
+              onOpenDossier={(p) => onOpenDossierModal(p, "GALLERY")}
+            />
           </div>
 
-          {/* Ficha Cartográfica Seleccionada */}
-          <div className="lg:col-span-5 border border-[#eaedf0] bg-white p-6">
-            <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
-              ACTIVO SELECCIONADO EN CARTOGRAFÍA
-            </span>
-            <h3 className="mt-1 font-outfit text-2xl font-bold text-black">
-              {selectedMapProp.name}
-            </h3>
-            <p className="font-outfit text-xs text-neutral-500">
-              {selectedMapProp.zone} · Lat {selectedMapProp.coordinates.lat}° N, Lng{" "}
-              {selectedMapProp.coordinates.lng}° W
-            </p>
+          {/* Ficha Cartográfica Seleccionada con Botonera Completa del Google Drive */}
+          <div className="flex flex-col justify-between border border-[#eaedf0] bg-white p-6 lg:col-span-4">
+            <div>
+              <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
+                DESARROLLO SELECCIONADO EN EL MAPA
+              </span>
+              <h3 className="mt-1 font-outfit text-xl font-bold text-[#091e3a]">
+                {selectedMapProp.name}
+              </h3>
+              <p className="font-outfit text-xs text-neutral-500">
+                {selectedMapProp.zone} · GPS{" "}
+                {selectedMapProp.coordinates.lat.toFixed(4)}° N,{" "}
+                {selectedMapProp.coordinates.lng.toFixed(4)}° W
+              </p>
 
-            <div className="mt-4 h-48 w-full overflow-hidden border border-[#eaedf0]">
-              <img
-                src={selectedMapProp.customImageUrl ?? selectedMapProp.defaultImageUrl}
-                alt={selectedMapProp.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
+              <div className="mt-4 h-44 w-full overflow-hidden border border-[#eaedf0]">
+                <img
+                  src={
+                    selectedMapProp.customImageUrl ??
+                    selectedMapProp.defaultImageUrl
+                  }
+                  alt={selectedMapProp.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 border border-[#eaedf0] bg-[#f8f9fa] p-4 font-outfit">
-              <div>
-                <span className="text-[10px] uppercase text-neutral-500">
-                  Precio de Lista
-                </span>
-                <div className="text-lg font-bold text-black">
-                  {formatSovereignCurrency(selectedMapProp.priceUsd, currency)}
+              <div className="mt-4 grid grid-cols-2 gap-3 border border-[#eaedf0] bg-[#f8f9fa] p-3.5 font-outfit">
+                <div>
+                  <span className="text-[10px] uppercase text-neutral-500">
+                    Precio Desde
+                  </span>
+                  <div className="text-base font-bold text-black">
+                    {formatSovereignCurrency(
+                      selectedMapProp.priceUsd,
+                      currency
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase text-neutral-500">
+                    Retorno Proyectado
+                  </span>
+                  <div className="text-base font-bold text-[#004044]">
+                    {selectedMapProp.roiAnnualPct}% Anual
+                  </div>
                 </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase text-neutral-500">
-                  Retorno Proyectado
+
+              {/* Botones para abrir directamente cada sección del Google Drive */}
+              <div className="mt-4 space-y-2">
+                <span className="block font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#0077cc]">
+                  ABRIR MÓDULO DEL EXPEDIENTE GOOGLE DRIVE:
                 </span>
-                <div className="text-lg font-bold text-[#004044]">
-                  {selectedMapProp.roiAnnualPct}% Anual
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenDossierModal(selectedMapProp, "GALLERY")
+                    }
+                    className="border border-[#091e3a]/25 bg-[#f8f9fa] py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                  >
+                    1. Fotos &amp; Renders
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenDossierModal(selectedMapProp, "BROCHURES")
+                    }
+                    className="border border-[#091e3a]/25 bg-[#f8f9fa] py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                  >
+                    2. Brochures PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenDossierModal(selectedMapProp, "INVENTORY")
+                    }
+                    className="border border-[#091e3a]/25 bg-[#f8f9fa] py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                  >
+                    3. Inventario Real
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenDossierModal(selectedMapProp, "PAYMENT_PLANS")
+                    }
+                    className="border border-[#755a34] bg-[#faeedd]/60 py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#755a34] hover:bg-[#755a34] hover:text-white"
+                  >
+                    4. Planes de Pago
+                  </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenDossierModal(selectedMapProp, "TECH_SPECS")
+                  }
+                  className="w-full border border-[#0077cc] bg-[#0077cc]/10 py-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-[#0077cc] hover:bg-[#0077cc] hover:text-white"
+                >
+                  5. Fichas Técnicas &amp; Plantas Ambientadas
+                </button>
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => onOpenDossierModal(selectedMapProp)}
-                className="flex-1 bg-[#000000] py-2.5 font-outfit text-xs font-semibold uppercase tracking-wider text-[#faeedd] hover:bg-[#755a34]"
+            <div className="mt-5 flex gap-2 border-t border-[#eaedf0] pt-4">
+              <a
+                href={selectedMapProp.driveFolderUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 border border-[#091e3a] bg-white py-2.5 text-center font-outfit text-xs font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#f2f4f6]"
               >
-                Abrir Dossier Completo
-              </button>
+                Abrir Google Drive ↗
+              </a>
               <button
                 type="button"
                 onClick={() => onOpenPhotoModal(selectedMapProp)}
-                className="border border-[#1c1b1a] px-4 py-2.5 font-outfit text-xs font-semibold uppercase tracking-wider text-black hover:bg-[#f2f4f6]"
+                className="bg-[#091e3a] px-4 py-2.5 font-outfit text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#755a34]"
               >
                 Cambiar Foto
               </button>
@@ -705,7 +773,10 @@ interface MasterInventoryViewProps {
   onToggleFavorite: (id: string) => void;
   onToggleCompare: (id: string) => void;
   onOpenPhotoModal: (property: AureaProperty) => void;
-  onOpenDossierModal: (property: AureaProperty) => void;
+  onOpenDossierModal: (
+    property: AureaProperty,
+    initialTab?: DossierTabKey
+  ) => void;
 }
 
 export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
@@ -721,9 +792,11 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
   onOpenDossierModal,
 }) => {
   const [zoneFilter, setZoneFilter] = useState<SovereignZone | "ALL">("ALL");
-  const [maxPriceUsd, setMaxPriceUsd] = useState<number>(10000000);
+  const [maxPriceUsd, setMaxPriceUsd] = useState<number>(3000000);
   const [minRoiPct, setMinRoiPct] = useState<number>(0);
-  const [deliveryFilter, setDeliveryFilter] = useState<DeliveryStatus | "ALL">("ALL");
+  const [deliveryFilter, setDeliveryFilter] = useState<
+    DeliveryStatus | "ALL"
+  >("ALL");
 
   const filteredProperties = useMemo(() => {
     return properties.filter((prop) => {
@@ -764,20 +837,21 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
             <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.22em] text-[#755a34]">
               {onlyFavoritesMode
                 ? "CURATED FAVORITES VAULT"
-                : "SOVEREIGN MASTER INVENTORY"}
+                : "SOVEREIGN MASTER INVENTORY · GOOGLE DRIVE INTEGRADO"}
             </span>
             <h1 className="font-outfit text-2xl font-bold text-black">
               {onlyFavoritesMode
-                ? "Bóveda de Propiedades Favoritas"
-                : "Inventario Maestro de Desarrollos & Personalización Visual"}
+                ? "Bóveda de Desarrollos Favoritos"
+                : "Inventario Maestro de Desarrollos — Expedientes Google Drive en Mano"}
             </h1>
           </div>
           <span className="bg-[#f2f4f6] px-3 py-1.5 font-outfit text-xs font-semibold text-[#1c1b1a]">
-            Mostrando {filteredProperties.length} de {properties.length} activos
+            Mostrando {filteredProperties.length} de {properties.length}{" "}
+            desarrollos
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 font-outfit text-xs">
+        <div className="mt-4 grid grid-cols-1 gap-4 font-outfit text-xs sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
               Zona / Corredor
@@ -800,13 +874,14 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
-              Presupuesto Máximo ({formatSovereignCurrency(maxPriceUsd, currency, true)})
+              Presupuesto Base Máximo (
+              {formatSovereignCurrency(maxPriceUsd, currency, true)})
             </label>
             <input
               type="range"
-              min={1500000}
-              max={10000000}
-              step={250000}
+              min={200000}
+              max={3000000}
+              step={50000}
               value={maxPriceUsd}
               onChange={(e) => setMaxPriceUsd(Number(e.target.value))}
               className="mt-3 w-full accent-[#755a34]"
@@ -822,7 +897,7 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
               onChange={(e) => setMinRoiPct(Number(e.target.value))}
               className="mt-1.5 w-full border border-[#eaedf0] bg-[#f8f9fa] px-3 py-2 font-medium text-black focus:border-[#755a34] focus:outline-none"
             >
-              <option value={0}>Cualquier ROI (11%+)</option>
+              <option value={0}>Cualquier ROI (12%+)</option>
               <option value={12}>Superior a 12.0% Anual</option>
               <option value={13}>Superior a 13.0% Anual</option>
               <option value={14}>Superior a 14.0% Anual</option>
@@ -861,16 +936,16 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
           return (
             <div
               key={prop.id}
-              className="flex flex-col justify-between border border-[#eaedf0] bg-white shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition-all hover:border-[#755a34]"
+              className="flex flex-col justify-between border border-[#eaedf0] bg-white shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition-all hover:border-[#091e3a]"
             >
               <div>
-                <div className="relative h-56 w-full overflow-hidden bg-[#1c1b1a]">
+                <div className="relative h-56 w-full overflow-hidden bg-[#091e3a]">
                   <img
                     src={imgUrl}
                     alt={prop.name}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
 
                   <div className="absolute left-3 top-3 flex items-center gap-1.5">
                     <span className="bg-black/85 px-2.5 py-1 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#faeedd]">
@@ -885,9 +960,9 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenPhotoModal(prop)}
-                      className="border border-white/30 bg-black/80 px-2.5 py-1 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#faeedd] hover:bg-[#755a34]"
+                      className="border border-white/30 bg-black/80 px-2.5 py-1 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-[#755a34]"
                     >
-                      📷 Cambiar Foto
+                      Cambiar Foto
                     </button>
                     <button
                       type="button"
@@ -904,10 +979,12 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
 
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                     <div>
-                      <div className="font-outfit text-[10px] uppercase tracking-widest text-[#faeedd]">
+                      <div className="font-outfit text-[10px] uppercase tracking-widest text-[#00b4f5]">
                         {prop.code} · {prop.deliveryStatus}
                       </div>
-                      <h3 className="font-outfit text-lg font-bold">{prop.name}</h3>
+                      <h3 className="font-outfit text-lg font-bold">
+                        {prop.name}
+                      </h3>
                     </div>
                   </div>
                 </div>
@@ -916,7 +993,7 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                   <div className="flex items-baseline justify-between border-b border-[#eaedf0] pb-3">
                     <div>
                       <span className="font-outfit text-[10px] uppercase text-neutral-500">
-                        Valor de Adquisición
+                        Precio Desde
                       </span>
                       <div className="font-outfit text-xl font-bold text-black">
                         {formatSovereignCurrency(prop.priceUsd, currency)}
@@ -935,7 +1012,9 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                   <div className="mt-3 grid grid-cols-3 gap-2 bg-[#f8f9fa] p-2.5 font-outfit text-[11px]">
                     <div>
                       <span className="text-neutral-500">Superficie:</span>
-                      <div className="font-bold text-black">{prop.areaM2} m²</div>
+                      <div className="font-bold text-black">
+                        {prop.areaM2} m²
+                      </div>
                     </div>
                     <div>
                       <span className="text-neutral-500">Programa:</span>
@@ -951,17 +1030,61 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                     </div>
                   </div>
 
-                  <p className="mt-3 text-xs text-neutral-600">{prop.typologies}</p>
+                  {/* Botonera Directa a las 5 Secciones del Google Drive */}
+                  <div className="mt-4 border-t border-[#eaedf0] pt-3">
+                    <span className="block font-outfit text-[9px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
+                      EXPEDIENTE GOOGLE DRIVE EN MANO:
+                    </span>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossierModal(prop, "GALLERY")}
+                        className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Fotos ({prop.galleryImages?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossierModal(prop, "BROCHURES")}
+                        className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Brochure ({prop.brochures?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossierModal(prop, "INVENTORY")}
+                        className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Inventario ({prop.inventoryUnits?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenDossierModal(prop, "PAYMENT_PLANS")
+                        }
+                        className="border border-[#755a34]/40 bg-[#faeedd]/50 px-2 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#755a34] hover:bg-[#755a34] hover:text-white"
+                      >
+                        Planes Pago
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossierModal(prop, "TECH_SPECS")}
+                        className="col-span-2 sm:col-span-1 border border-[#0077cc]/30 bg-[#0077cc]/5 px-2 py-1.5 font-outfit text-[10px] font-semibold uppercase tracking-wider text-[#0077cc] hover:bg-[#0077cc] hover:text-white"
+                      >
+                        Fichas Técnicas
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 border-t border-[#eaedf0] bg-[#f8f9fa] p-3">
                 <button
                   type="button"
-                  onClick={() => onOpenDossierModal(prop)}
-                  className="bg-[#000000] py-2 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-[#755a34]"
+                  onClick={() => onOpenDossierModal(prop, "GALLERY")}
+                  className="bg-[#091e3a] py-2 font-outfit text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-[#0077cc]"
                 >
-                  Ficha & Dossier
+                  Expediente Completo
                 </button>
                 <a
                   href={prop.driveFolderUrl}
@@ -969,7 +1092,7 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                   rel="noreferrer"
                   className="flex items-center justify-center border border-[#1c1b1a]/20 bg-white py-2 font-outfit text-[10px] font-semibold uppercase tracking-wider text-black hover:border-black"
                 >
-                  📂 Drive Oficial
+                  Drive Oficial ↗
                 </a>
                 <button
                   type="button"
@@ -980,7 +1103,7 @@ export const MasterInventoryView: React.FC<MasterInventoryViewProps> = ({
                       : "border-[#1c1b1a]/20 bg-white text-black hover:border-black"
                   }`}
                 >
-                  {isCompared ? "✓ Comparando" : "+ Comparar"}
+                  {isCompared ? "Comparando" : "+ Comparar"}
                 </button>
               </div>
             </div>
@@ -996,7 +1119,10 @@ interface ComparatorViewProps {
   comparedIds: string[];
   currency: CurrencyCode;
   onToggleCompare: (id: string) => void;
-  onOpenDossierModal: (property: AureaProperty) => void;
+  onOpenDossierModal: (
+    property: AureaProperty,
+    initialTab?: DossierTabKey
+  ) => void;
 }
 
 export const ComparatorView: React.FC<ComparatorViewProps> = ({
@@ -1019,7 +1145,7 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
             MULTIDIMENSIONAL ASSET BENCHMARK
           </span>
           <h1 className="font-outfit text-2xl font-bold text-black">
-            Comparador Multidimensional de Propiedades (Hasta 3 en Simultáneo)
+            Comparador Multidimensional de Desarrollos (Hasta 3 en Simultáneo)
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -1032,12 +1158,12 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
                 onClick={() => onToggleCompare(p.id)}
                 className={`border px-3 py-1.5 font-outfit text-xs font-medium transition-colors ${
                   active
-                    ? "border-[#000000] bg-[#000000] text-[#faeedd]"
+                    ? "border-[#091e3a] bg-[#091e3a] text-white"
                     : "border-[#eaedf0] bg-[#f8f9fa] text-neutral-700 hover:border-black"
                 }`}
               >
                 {active ? "✓ " : "+ "}
-                {p.name}
+                {p.name.split("—")[0].split("(")[0].trim()}
               </button>
             );
           })}
@@ -1047,8 +1173,8 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
       <div className="overflow-x-auto border border-[#eaedf0] bg-white shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-b border-[#eaedf0] bg-[#1c1b1a] text-white">
-              <th className="w-56 p-5 font-outfit text-xs uppercase tracking-wider text-[#faeedd]">
+            <tr className="border-b border-[#eaedf0] bg-[#091e3a] text-white">
+              <th className="w-56 p-5 font-outfit text-xs uppercase tracking-wider text-[#00b4f5]">
                 Dimensión Patrimonial
               </th>
               {comparedProps.map((prop) => (
@@ -1060,7 +1186,7 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onToggleCompare(prop.id)}
-                      className="text-[10px] text-neutral-400 hover:text-white"
+                      className="text-[10px] text-neutral-300 hover:text-white"
                     >
                       Quitar ✕
                     </button>
@@ -1075,21 +1201,21 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
           <tbody className="divide-y divide-[#eaedf0]">
             <tr>
               <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
-                Vista Arquitectónica
+                Render Oficial Google Drive
               </td>
               {comparedProps.map((prop) => (
                 <td key={prop.id} className="p-4">
                   <img
                     src={prop.customImageUrl ?? prop.defaultImageUrl}
                     alt={prop.name}
-                    className="h-36 w-full object-cover border border-[#eaedf0]"
+                    className="h-36 w-full border border-[#eaedf0] object-cover"
                   />
                 </td>
               ))}
             </tr>
             <tr>
               <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
-                Precio de Adquisición
+                Precio Base de Lista
               </td>
               {comparedProps.map((prop) => (
                 <td
@@ -1105,11 +1231,36 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
                 Precio por m²
               </td>
               {comparedProps.map((prop) => (
-                <td key={prop.id} className="p-4 font-outfit font-semibold text-neutral-800">
-                  {formatSovereignCurrency(prop.priceUsd / prop.areaM2, currency)} / m² (
-                  {prop.areaM2} m²)
+                <td
+                  key={prop.id}
+                  className="p-4 font-outfit font-semibold text-neutral-800"
+                >
+                  {formatSovereignCurrency(
+                    prop.priceUsd / prop.areaM2,
+                    currency
+                  )}{" "}
+                  / m² ({prop.areaM2} m²)
                 </td>
               ))}
+            </tr>
+            <tr>
+              <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
+                Planes de Pago &amp; Descuento Máximo
+              </td>
+              {comparedProps.map((prop) => {
+                const maxDesc = Math.max(
+                  ...(prop.paymentPlans?.map((pl) => pl.discountPct) ?? [0])
+                );
+                return (
+                  <td
+                    key={prop.id}
+                    className="p-4 font-outfit font-semibold text-[#755a34]"
+                  >
+                    {prop.paymentPlans?.length ?? 1} Esquemas Oficiales · Hasta{" "}
+                    {maxDesc}% de Descuento
+                  </td>
+                );
+              })}
             </tr>
             <tr>
               <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
@@ -1135,7 +1286,10 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
                 Proyección de Plusvalía (5 Años)
               </td>
               {comparedProps.map((prop) => (
-                <td key={prop.id} className="p-4 font-outfit font-bold text-[#755a34]">
+                <td
+                  key={prop.id}
+                  className="p-4 font-outfit font-bold text-[#755a34]"
+                >
                   +{prop.appreciation5YPct}% (Valor 5Y:{" "}
                   {formatSovereignCurrency(
                     prop.priceUsd * (1 + prop.appreciation5YPct / 100),
@@ -1148,30 +1302,14 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
             </tr>
             <tr>
               <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
-                Costo de Mantenimiento Mensual
+                Unidades Disponibles en Drive
               </td>
               {comparedProps.map((prop) => (
-                <td key={prop.id} className="p-4 font-outfit text-neutral-700">
-                  {formatSovereignCurrency(prop.maintenanceMonthlyUsd, currency)} / mes
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td className="bg-[#f8f9fa] p-4 font-outfit font-semibold text-[#1c1b1a]">
-                Amenidades Clave
-              </td>
-              {comparedProps.map((prop) => (
-                <td key={prop.id} className="p-4">
-                  <div className="flex flex-wrap gap-1">
-                    {prop.amenities.map((a) => (
-                      <span
-                        key={a}
-                        className="border border-[#eaedf0] bg-[#f8f9fa] px-2 py-0.5 font-outfit text-[10px]"
-                      >
-                        {a}
-                      </span>
-                    ))}
-                  </div>
+                <td
+                  key={prop.id}
+                  className="p-4 font-outfit font-semibold text-[#091e3a]"
+                >
+                  {prop.availableUnits} de {prop.totalUnits} unidades
                 </td>
               ))}
             </tr>
@@ -1183,10 +1321,10 @@ export const ComparatorView: React.FC<ComparatorViewProps> = ({
                 <td key={prop.id} className="p-4">
                   <button
                     type="button"
-                    onClick={() => onOpenDossierModal(prop)}
-                    className="w-full bg-[#000000] py-2 font-outfit text-xs font-semibold uppercase tracking-wider text-[#faeedd] hover:bg-[#755a34]"
+                    onClick={() => onOpenDossierModal(prop, "INVENTORY")}
+                    className="w-full bg-[#091e3a] py-2 font-outfit text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#0077cc]"
                   >
-                    Emitir Dossier Comparativo
+                    Abrir Expediente &amp; Precios
                   </button>
                 </td>
               ))}

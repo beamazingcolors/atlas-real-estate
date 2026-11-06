@@ -57,6 +57,71 @@ export interface PhotoPreset {
   caption: string;
 }
 
+export interface PropertyGalleryItem {
+  label: string;
+  url: string;
+  category: "Fachada" | "Interior" | "Amenidades" | "Planta Arquitectónica";
+}
+
+export interface PropertyBrochureDoc {
+  title: string;
+  language: "Español" | "Inglés" | "Bilingüe";
+  url: string;
+  description: string;
+}
+
+export interface PropertyPaymentPlan {
+  id: string;
+  schemeName: string;
+  structure: string;
+  discountPct: number;
+  notes: string;
+}
+
+export interface PropertyInventoryUnit {
+  unit: string;
+  towerOrLevel: string;
+  model: string;
+  typology: string;
+  areaM2: number;
+  viewOrOrientation: string;
+  priceMxn: number;
+  priceUsd: number;
+  status: "Disponible" | "Reservado" | "Showroom";
+}
+
+export interface PropertyTechnicalSpec {
+  prototypeName: string;
+  modelCode: string;
+  areaM2: string;
+  bedrooms: string;
+  bathrooms: string;
+  parking: string;
+  layoutDetails: string;
+  floorplanImageUrl?: string;
+  pdfUrl?: string;
+}
+
+export interface PropertyDriveSubfolder {
+  label: string;
+  category: string;
+  url: string;
+}
+
+export interface InteractiveOptionDetail {
+  id: string;
+  kicker: string;
+  title: string;
+  subtitle: string;
+  executiveSummary: string;
+  keyMetrics: { label: string; value: string }[];
+  bulletPoints: string[];
+  deliverables: string[];
+  actionLabel?: string;
+  targetNav?: NavSectionId;
+  externalUrl?: string;
+}
+
 export interface AureaProperty {
   id: string;
   code: string;
@@ -88,6 +153,13 @@ export interface AureaProperty {
   amenities: string[];
   architecturalDigest: string;
   developerName: string;
+  galleryImages?: PropertyGalleryItem[];
+  brochures?: PropertyBrochureDoc[];
+  paymentPlans?: PropertyPaymentPlan[];
+  inventoryUnits?: PropertyInventoryUnit[];
+  technicalSpecs?: PropertyTechnicalSpec[];
+  driveSubfolders?: PropertyDriveSubfolder[];
+  engineeringAndFinishes?: string[];
 }
 
 export interface CrmProspect {
@@ -126,7 +198,11 @@ export interface VipAppointment {
   propertyName: string;
   dateLabel: string;
   timeLabel: string;
-  transportMode: "Yate Privado" | "Helicóptero" | "Chófer Ejecutivo" | "Visita Presencial";
+  transportMode:
+    | "Yate Privado"
+    | "Helicóptero"
+    | "Chófer Ejecutivo"
+    | "Visita Presencial";
   status: "Confirmada" | "En Protocolo" | "Pendiente KYC";
 }
 
