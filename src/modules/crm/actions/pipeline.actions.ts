@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
   LogDealActivitySchema,
+  STAGE_PROBABILITIES,
   UpdateDealStageSchema,
 } from "@/modules/crm/validations/pipeline.schema";
 import {
@@ -21,20 +22,20 @@ function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
 export async function updateDealStageAction(
   rawData: unknown
 ): Promise<ActionResponse<DealStageMutationResult>> {
+  const validationResult = UpdateDealStageSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    const firstIssue =
+      validationResult.error.issues[0]?.message ??
+      "Parámetros de transición de etapa inválidos.";
+    return {
+      success: false,
+      error: firstIssue,
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
   try {
-    const validationResult = UpdateDealStageSchema.safeParse(rawData);
-
-    if (!validationResult.success) {
-      const firstIssue =
-        validationResult.error.issues[0]?.message ??
-        "Parámetros de transición de etapa inválidos.";
-      return {
-        success: false,
-        error: firstIssue,
-        fieldErrors: validationResult.error.flatten().fieldErrors,
-      };
-    }
-
     const mutationResult = await CrmPipelineService.updateDealStage(
       validationResult.data
     );
@@ -48,6 +49,24 @@ export async function updateDealStageAction(
       data: mutationResult,
     };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Modo demostración en cliente estático")
+    ) {
+      const prob = STAGE_PROBABILITIES[validationResult.data.newStage];
+      return {
+        success: true,
+        data: {
+          dealId: validationResult.data.dealId,
+          previousStage: "NEGOTIATION",
+          newStage: validationResult.data.newStage,
+          probability: prob,
+          dealValueMxn: 12780000,
+          weightedValueMxn: Number(((12780000 * prob) / 100).toFixed(2)),
+          syncedUnitStatus: null,
+        },
+      };
+    }
     return {
       success: false,
       error: resolveErrorMessage(error, "Fallo en la mutación de etapa del Deal."),
@@ -58,17 +77,17 @@ export async function updateDealStageAction(
 export async function logDealActivityAction(
   rawData: unknown
 ): Promise<ActionResponse<{ activityId: string; completedAt: string }>> {
+  const validationResult = LogDealActivitySchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: "Datos de actividad comercial inválidos.",
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
   try {
-    const validationResult = LogDealActivitySchema.safeParse(rawData);
-
-    if (!validationResult.success) {
-      return {
-        success: false,
-        error: "Datos de actividad comercial inválidos.",
-        fieldErrors: validationResult.error.flatten().fieldErrors,
-      };
-    }
-
     const actorUserId = "a2d1f930-5847-4e08-8e68-0fc29b719488";
     const activity = await CrmPipelineService.logDealActivity(
       validationResult.data,
@@ -85,6 +104,18 @@ export async function logDealActivityAction(
       },
     };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Modo demostración en cliente estático")
+    ) {
+      return {
+        success: true,
+        data: {
+          activityId: `act-${Date.now()}`,
+          completedAt: new Date().toISOString(),
+        },
+      };
+    }
     return {
       success: false,
       error: resolveErrorMessage(

@@ -36,18 +36,18 @@ function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
 export async function createQuotationAction(
   rawData: unknown
 ): Promise<ActionResponse<{ quotationId: string; folio: string; finalPrice: string }>> {
+  const validationResult = CreateQuotationSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: "Los datos de cotización no cumplen con las validaciones de negocio.",
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
   try {
     const user = await getAuthenticatedUser();
-    const validationResult = CreateQuotationSchema.safeParse(rawData);
-
-    if (!validationResult.success) {
-      return {
-        success: false,
-        error: "Los datos de cotización no cumplen con las validaciones de negocio.",
-        fieldErrors: validationResult.error.flatten().fieldErrors,
-      };
-    }
-
     const quotation = await QuotationService.calculateAndCreate(
       validationResult.data,
       user.id
@@ -65,6 +65,20 @@ export async function createQuotationAction(
       },
     };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Modo demostración en cliente estático")
+    ) {
+      const folio = `Q-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      return {
+        success: true,
+        data: {
+          quotationId: `sim-${Date.now()}`,
+          folio,
+          finalPrice: "12332700",
+        },
+      };
+    }
     return {
       success: false,
       error: resolveErrorMessage(
@@ -78,18 +92,18 @@ export async function createQuotationAction(
 export async function reserveUnitAction(
   rawData: unknown
 ): Promise<ActionResponse<{ reservationId: string; expiresAt: string }>> {
+  const validationResult = CreateReservationSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: "Parámetros de reserva inválidos.",
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
   try {
     const user = await getAuthenticatedUser();
-    const validationResult = CreateReservationSchema.safeParse(rawData);
-
-    if (!validationResult.success) {
-      return {
-        success: false,
-        error: "Parámetros de reserva inválidos.",
-        fieldErrors: validationResult.error.flatten().fieldErrors,
-      };
-    }
-
     const reservation = await ReservationService.reserveUnit(
       validationResult.data,
       user.id
@@ -107,6 +121,19 @@ export async function reserveUnitAction(
       },
     };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Modo demostración en cliente estático")
+    ) {
+      const expiresAt = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
+      return {
+        success: true,
+        data: {
+          reservationId: `rsv-${Math.floor(10000000 + Math.random() * 90000000)}`,
+          expiresAt,
+        },
+      };
+    }
     return {
       success: false,
       error: resolveErrorMessage(error, "No fue posible apartar la unidad."),
@@ -117,18 +144,18 @@ export async function reserveUnitAction(
 export async function registerPurchaseIntentAction(
   rawData: unknown
 ): Promise<ActionResponse<{ dealId: string; stage: string; probability: number }>> {
+  const validationResult = RegisterPurchaseIntentSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: "Datos inválidos para registrar intención de compra en el CRM.",
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
   try {
     const user = await getAuthenticatedUser();
-    const validationResult = RegisterPurchaseIntentSchema.safeParse(rawData);
-
-    if (!validationResult.success) {
-      return {
-        success: false,
-        error: "Datos inválidos para registrar intención de compra en el CRM.",
-        fieldErrors: validationResult.error.flatten().fieldErrors,
-      };
-    }
-
     const deal = await InventoryCrmService.registerPurchaseIntent(
       validationResult.data,
       user.id
@@ -147,6 +174,19 @@ export async function registerPurchaseIntentAction(
       },
     };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Modo demostración en cliente estático")
+    ) {
+      return {
+        success: true,
+        data: {
+          dealId: `deal-${Date.now()}`,
+          stage: validationResult.data.initialStage ?? "NEGOTIATION",
+          probability: 55,
+        },
+      };
+    }
     return {
       success: false,
       error: resolveErrorMessage(
