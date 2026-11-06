@@ -10,6 +10,7 @@ import {
   formatSovereignCurrency,
   sanitizeSovereignInput,
 } from "../storage/useAureaStorage";
+import { AtlasBrandLogo } from "./AtlasBrandLogo";
 
 interface PhotoCustomizerModalProps {
   property: AureaProperty;
@@ -40,14 +41,17 @@ export const PhotoCustomizerModal: React.FC<PhotoCustomizerModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl border border-[#1c1b1a] bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#eaedf0] bg-[#1c1b1a] px-6 py-4 text-white">
-          <div>
-            <span className="font-outfit text-[10px] uppercase tracking-[0.22em] text-[#faeedd]">
-              AUREA VISUAL CURATION STUDIO
-            </span>
-            <h3 className="font-outfit text-lg font-semibold">
-              Personalizar Fotografía — {property.name}
-            </h3>
+        <div className="flex items-center justify-between border-b border-[#eaedf0] bg-[#091e3a] px-6 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <AtlasBrandLogo variant="icon" theme="dark" className="h-9 w-9" />
+            <div>
+              <span className="font-outfit text-[10px] uppercase tracking-[0.22em] text-[#00c2ff]">
+                PROYECTO ATLAS · VISUAL CURATION STUDIO
+              </span>
+              <h3 className="font-outfit text-lg font-semibold">
+                Personalizar Fotografía — {property.name}
+              </h3>
+            </div>
           </div>
           <button
             type="button"
@@ -190,14 +194,14 @@ export const PropertyDossierModal: React.FC<DossierModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
       <div className="my-8 w-full max-w-4xl border border-[#1c1b1a] bg-white shadow-2xl">
         {/* Barra institucional del Dossier */}
-        <div className="flex items-center justify-between border-b border-[#755a34]/40 bg-[#000000] px-8 py-5 text-white">
+        <div className="flex items-center justify-between border-b border-[#0077cc]/40 bg-[#091e3a] px-8 py-5 text-white">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center border border-[#755a34] bg-[#1c1b1a] font-outfit text-sm font-bold tracking-widest text-[#faeedd]">
-              {whiteLabel.monogram}
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/15 bg-white/5 p-1">
+              <AtlasBrandLogo variant="icon" theme="dark" className="h-10 w-10" />
             </div>
             <div>
-              <div className="font-outfit text-[10px] uppercase tracking-[0.26em] text-[#faeedd]">
-                {whiteLabel.agencyName} · PRIVATE WEALTH DOSSIER
+              <div className="font-outfit text-[10px] uppercase tracking-[0.26em] text-[#00c2ff]">
+                {whiteLabel.agencyName} · REAL ESTATE PLATFORM DOSSIER
               </div>
               <h2 className="font-outfit text-xl font-semibold tracking-tight">
                 {property.name} ({property.code})
@@ -406,8 +410,8 @@ export const QuickLeadModal: React.FC<QuickLeadModalProps> = ({
       stage: "CONTACTO_INICIAL",
       privateNotes:
         notesSanitized.clean ||
-        "Prospecto registrado desde consola ejecutiva AUREA.",
-      assignedBrokerName: "Alexis Garzón",
+        "Prospecto registrado desde consola ejecutiva Proyecto Atlas.",
+      assignedBrokerName: "Andre Fraga",
       createdAtIso: new Date().toISOString().slice(0, 10),
     };
 
@@ -421,14 +425,17 @@ export const QuickLeadModal: React.FC<QuickLeadModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="w-full max-w-lg border border-[#1c1b1a] bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#eaedf0] bg-[#000000] px-6 py-4 text-white">
-          <div>
-            <span className="font-outfit text-[10px] uppercase tracking-[0.22em] text-[#faeedd]">
-              AUREA PRIVATE CRM · ESCUDO ACTIVO
-            </span>
-            <h3 className="font-outfit text-lg font-semibold">
-              Registrar Nuevo Prospecto Patrimonial
-            </h3>
+        <div className="flex items-center justify-between border-b border-[#eaedf0] bg-[#091e3a] px-6 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <AtlasBrandLogo variant="icon" theme="dark" className="h-9 w-9" />
+            <div>
+              <span className="font-outfit text-[10px] uppercase tracking-[0.22em] text-[#00c2ff]">
+                PROYECTO ATLAS CRM · ESCUDO ACTIVO
+              </span>
+              <h3 className="font-outfit text-lg font-semibold">
+                Registrar Nuevo Prospecto Patrimonial
+              </h3>
+            </div>
           </div>
           <button
             type="button"

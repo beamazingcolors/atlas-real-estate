@@ -259,7 +259,7 @@ export const INITIAL_PROSPECTS: CrmProspect[] = [
     stage: "NEGOCIACION_OFERTA",
     privateNotes:
       "Solicita estructuración mediante Fideicomiso en Zona Restringida con banco fiduciario triple A y entrega con amarre de yate.",
-    assignedBrokerName: "Alexis Garzón",
+    assignedBrokerName: "Andre Fraga",
     createdAtIso: "2026-11-01",
   },
   {
@@ -275,7 +275,7 @@ export const INITIAL_PROSPECTS: CrmProspect[] = [
     stage: "RECORRIDO_PRESENCIAL",
     privateNotes:
       "Recorrido privado confirmado con traslado en helicóptero desde el FBO de Cancún. Interesada en esquema 40/60.",
-    assignedBrokerName: "Alexis Garzón",
+    assignedBrokerName: "Andre Fraga",
     createdAtIso: "2026-11-02",
   },
   {
@@ -317,13 +317,13 @@ export const INITIAL_PROSPECTS: CrmProspect[] = [
     phone: "+528183459900",
     email: "elena.arizpe@sadafamily.mx",
     budgetUsd: 2600000,
-    source: "Dossier Privado AUREA",
+    source: "Dossier Privado Proyecto Atlas",
     interestedPropertyId: "prop-marina-sovereign",
     interestedPropertyName: "The Sovereign Yacht Club Residences",
     stage: "CALIFICACION_PATRIMONIAL",
     privateNotes:
       "KYC completado. Requiere comparativo fiscal entre adquisición como persona física vs. sociedad patrimonial.",
-    assignedBrokerName: "Alexis Garzón",
+    assignedBrokerName: "Andre Fraga",
     createdAtIso: "2026-11-04",
   },
   {
@@ -438,13 +438,13 @@ export const INITIAL_VIP_APPOINTMENTS: VipAppointment[] = [
 export const INITIAL_BROKER_TEAM: BrokerAgentMember[] = [
   {
     id: "brk-01",
-    name: "Alexis Garzón",
-    role: "Managing Director & Senior Sovereign Advisor",
+    name: "Andre Fraga",
+    role: "CEO & Founder · Proyecto Atlas",
     specialtyZone: "Puerto Cancún",
     activeLeadsCount: 9,
     closedVolumeUsd: 24800000,
     commissionSplitBrokerPct: 70,
-    avatarInitials: "AG",
+    avatarInitials: "AF",
     status: "Disponible",
   },
   {

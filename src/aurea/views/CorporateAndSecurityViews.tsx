@@ -299,16 +299,16 @@ export const AgencySuiteView: React.FC<AgencySuiteViewProps> = ({
                 type="button"
                 onClick={() =>
                   onUpdateWhiteLabel({
-                    agencyName: "AUREA",
-                    monogram: "AU",
-                    subtitle: "SOVEREIGN ASSETS",
+                    agencyName: "PROYECTO ATLAS",
+                    monogram: "PA",
+                    subtitle: "REAL ESTATE PLATFORM",
                     agencySplitPct: 40,
                     brokerSplitPct: 60,
                   })
                 }
                 className="rounded-lg border border-[#eaedf0] bg-[#f2f4f6] px-3.5 py-2 font-['Outfit'] text-xs font-medium text-neutral-700 hover:border-black hover:text-black"
               >
-                Restaurar Identidad Original AUREA
+                Restaurar Identidad Original Proyecto Atlas
               </button>
             </div>
           </div>
@@ -882,27 +882,27 @@ export const DriveAuditView: React.FC<DriveAuditViewProps> = ({
 export const CookiePrivacyBanner: React.FC = () => {
   const [consentState, setConsentState] = usePersistentState<
     "PENDING" | "ACCEPTED" | "ESSENTIAL_ONLY"
-  >("aurea_privacy_consent_v1", "PENDING");
+  >("proyecto_atlas_privacy_consent_v2", "PENDING");
 
   if (consentState !== "PENDING") {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-5xl rounded-xl border border-[#755a34]/40 bg-[#1c1b1a] p-4 text-white shadow-2xl lg:left-76">
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-5xl rounded-xl border border-[#0077cc]/40 bg-[#091e3a] p-4 text-white shadow-2xl lg:left-76">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1 pr-4">
           <div className="flex items-center gap-2">
-            <span className="rounded bg-[#755a34] px-2 py-0.5 font-['Outfit'] text-[10px] font-bold uppercase tracking-wider text-[#faeedd]">
+            <span className="rounded bg-[#0077cc] px-2 py-0.5 font-['Outfit'] text-[10px] font-bold uppercase tracking-wider text-white">
               CUMPLIMIENTO LFPDPPP & GDPR
             </span>
             <span className="font-['Outfit'] text-xs font-semibold text-white">
-              Protocolo de Privacidad & Resguardo de Datos Patrimoniales
+              Protocolo de Privacidad & Resguardo de Datos · Proyecto Atlas
             </span>
           </div>
           <p className="text-[11px] leading-relaxed text-neutral-300">
-            AUREA Sovereign Architecture cifra localmente sus selecciones de inversión, fotos personalizadas y notas de clientes en{" "}
-            <code className="text-[#faeedd]">localStorage</code> bajo normativa de protección de datos personales.
+            Proyecto Atlas (Real Estate Platform) cifra localmente sus selecciones de inversión, fotos personalizadas y notas de clientes en{" "}
+            <code className="text-[#00c2ff]">localStorage</code> bajo normativa de protección de datos personales.
           </p>
         </div>
 

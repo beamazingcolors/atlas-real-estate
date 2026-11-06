@@ -31,6 +31,7 @@ export type ClientSegmentTag =
   | "Family Office";
 
 export type NavSectionId =
+  | "home"
   | "executive"
   | "inventory"
   | "crm"

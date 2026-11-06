@@ -83,7 +83,7 @@ export const CrmPipelineView: React.FC<CrmPipelineViewProps> = ({
 
   const buildWhatsAppLink = (prospect: CrmProspect) => {
     const cleanDigits = prospect.phone.replace(/[^\d]/g, "");
-    const message = `Estimado/a ${prospect.fullName} (${prospect.titleOrOffice}), le saluda la Dirección Patrimonial de AUREA Sovereign Architecture. En seguimiento a su interés en *${prospect.interestedPropertyName}*, hemos preparado el dossier técnico actualizado, corrida de retorno patrimonial y disponibilidad oficial para coordinar su revisión privada. ¿Le resulta conveniente una breve llamada ejecutiva hoy?`;
+    const message = `Estimado/a ${prospect.fullName} (${prospect.titleOrOffice}), le saluda la Dirección Patrimonial de Proyecto Atlas (Real Estate Platform). En seguimiento a su interés en *${prospect.interestedPropertyName}*, hemos preparado el dossier técnico actualizado, corrida de retorno patrimonial y disponibilidad oficial para coordinar su revisión privada. ¿Le resulta conveniente una breve llamada ejecutiva hoy?`;
     return `https://wa.me/${cleanDigits}?text=${encodeURIComponent(message)}`;
   };
 
@@ -1047,8 +1047,8 @@ const INITIAL_COPILOT_MESSAGES: CopilotMessage[] = [
   {
     id: "cop-welcome",
     role: "assistant",
-    title: "Atlas Copilot · Private Wealth Legal & Fiscal Intelligence",
-    text: "Bienvenido al motor jurídico-comercial de AUREA Sovereign Architecture. Estoy entrenado en estructuración de Fideicomisos en Zona Restringida (Art. 27 Constitucional), cálculo de gastos de escrituración en Quintana Roo, normativas fiscales (ISR, IVA, retenciones a residentes en el extranjero) y argumentos de cierre para los 14 desarrollos en cartera.",
+    title: "Atlas Copilot · Proyecto Atlas Legal & Fiscal Intelligence",
+    text: "Bienvenido al motor jurídico-comercial de Proyecto Atlas (Real Estate Platform). Estoy entrenado en estructuración de Fideicomisos en Zona Restringida (Art. 27 Constitucional), cálculo de gastos de escrituración en Quintana Roo, normativas fiscales (ISR, IVA, retenciones a residentes en el extranjero) y argumentos de cierre para los 14 desarrollos en cartera.",
     timestamp: "09:00 HRS",
   },
 ];
@@ -1084,13 +1084,13 @@ const KNOWLEDGE_TOPICS = [
     question:
       "¿Qué cláusulas protegen al inversionista en contratos de preventa bajo la NOM-247-SE-2021?",
     answer:
-      "Todos los desarrollos auditados en AUREA cumplen con la **NOM-247-SE-2021**: cuentan con Licencia de Construcción vigente, Fideicomiso Maestro de Administración, póliza de garantía por vicios ocultos (5 años en estructura, 3 años en impermeabilización) y cláusula de penalización simétrica en caso de demora en la fecha de entrega física.",
+      "Todos los desarrollos auditados en Proyecto Atlas cumplen con la **NOM-247-SE-2021**: cuentan con Licencia de Construcción vigente, Fideicomiso Maestro de Administración, póliza de garantía por vicios ocultos (5 años en estructura, 3 años en impermeabilización) y cláusula de penalización simétrica en caso de demora en la fecha de entrega física.",
   },
 ];
 
 export const AtlasCopilotView: React.FC = () => {
   const [messages, setMessages] = usePersistentState<CopilotMessage[]>(
-    "aurea_copilot_history_v1",
+    "proyecto_atlas_copilot_history_v2",
     INITIAL_COPILOT_MESSAGES
   );
   const [inputQuery, setInputQuery] = useState("");
@@ -1109,7 +1109,7 @@ export const AtlasCopilotView: React.FC = () => {
     if (q.includes("contrato") || q.includes("preventa") || q.includes("nom")) {
       return KNOWLEDGE_TOPICS[3].answer;
     }
-    return `Dictamen Ejecutivo AUREA para "${queryText}": Para operaciones en Puerto Cancún y Zona Hotelera recomendamos estructurar la oferta mediante Carta de Intención (LOI) con depósito en cuenta concentradora fiduciaria (Escrow), asegurando bloqueo de unidad por 10 días hábiles mientras nuestro comité legal valida el expediente KYC/AML, régimen de condominio y corrida de ISR/IVA aplicable al perfil del comprador.`;
+    return `Dictamen Ejecutivo Proyecto Atlas para "${queryText}": Para operaciones en Puerto Cancún y Zona Hotelera recomendamos estructurar la oferta mediante Carta de Intención (LOI) con depósito en cuenta concentradora fiduciaria (Escrow), asegurando bloqueo de unidad por 10 días hábiles mientras nuestro comité legal valida el expediente KYC/AML, régimen de condominio y corrida de ISR/IVA aplicable al perfil del comprador.`;
   };
 
   const handleSendQuestion = (textToSend: string) => {
@@ -1131,7 +1131,7 @@ export const AtlasCopilotView: React.FC = () => {
     const replyMsg: CopilotMessage = {
       id: `ast-${Date.now() + 1}`,
       role: "assistant",
-      title: "Dictamen Jurídico-Patrimonial AUREA",
+      title: "Dictamen Jurídico-Patrimonial · Proyecto Atlas",
       text: generateAdvisorResponse(clean),
       timestamp: `${nowLabel} HRS`,
     };

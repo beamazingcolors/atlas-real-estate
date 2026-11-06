@@ -95,7 +95,7 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
       minute: "2-digit",
     });
     setIntelligenceDeckToast(
-      `Dossier Patrimonial AUREA Intelligence compilado (${timestamp}) con ${flagshipProperties.length} activos insignia en divisa ${currency}. Abriendo vista de presentación...`
+      `Dossier Patrimonial Proyecto Atlas Intelligence compilado (${timestamp}) con ${flagshipProperties.length} activos insignia en divisa ${currency}. Abriendo vista de presentación...`
     );
     setTimeout(() => {
       if (flagshipProperties[0]) {
@@ -109,12 +109,12 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
       {/* Selector Superior: Mando Ejecutivo vs Cartografía & Preventas Cancún */}
       <div className="flex flex-wrap items-center justify-between gap-4 border border-[#eaedf0] bg-white p-4 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
         <div>
-          <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.24em] text-[#755a34]">
-            AUREA SOVEREIGN OS · PROYECTO ATLAS
+          <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.24em] text-[#0077cc]">
+            PROYECTO ATLAS · REAL ESTATE PLATFORM
           </span>
           <h1 className="font-outfit text-2xl font-bold tracking-tight text-black">
             {subView === "COMMAND"
-              ? "Centro de Mando Ejecutivo — Private Wealth"
+              ? "Centro de Mando Ejecutivo — Proyecto Atlas"
               : "Cartografía Soberana & Matriz de Preventas Cancún"}
           </h1>
         </div>
@@ -500,10 +500,10 @@ export const ExecutiveDashboardView: React.FC<ExecutiveDashboardProps> = ({
                 </div>
               </div>
 
-              {/* AUREA Intelligence */}
-              <div className="border border-[#755a34] bg-[#1c1b1a] p-6 text-white shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
-                <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.24em] text-[#faeedd]">
-                  AUREA INTELLIGENCE ENGINE
+              {/* Proyecto Atlas Intelligence */}
+              <div className="border border-[#0077cc]/40 bg-[#091e3a] p-6 text-white shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+                <span className="font-outfit text-[10px] font-semibold uppercase tracking-[0.24em] text-[#00c2ff]">
+                  PROYECTO ATLAS INTELLIGENCE ENGINE
                 </span>
                 <h3 className="mt-1 font-outfit text-lg font-bold text-white">
                   Generador Express de Presentaciones Patrimoniales

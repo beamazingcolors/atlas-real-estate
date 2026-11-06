@@ -27,11 +27,13 @@ import {
   formatSovereignCurrency,
   usePersistentState,
 } from "./storage/useAureaStorage";
+import { AtlasBrandLogo } from "./components/AtlasBrandLogo";
 import {
   PhotoCustomizerModal,
   PropertyDossierModal,
   QuickLeadModal,
 } from "./components/SovereignModals";
+import { AtlasHomeOverviewView } from "./views/AtlasHomeOverviewView";
 import {
   ComparatorView,
   ExecutiveDashboardView,
@@ -58,72 +60,72 @@ const MEMBERSHIP_LABELS: Record<MembershipTier, string> = {
 };
 
 export const AureaSovereignApp: React.FC = () => {
-  // Estados persistentes en localStorage
+  // Estados persistentes en localStorage (v2 para Proyecto Atlas)
   const [properties, setProperties] = usePersistentState<AureaProperty[]>(
-    "aurea_properties_v1",
+    "proyecto_atlas_properties_v2",
     INITIAL_PROPERTIES
   );
   const [favorites, setFavorites] = usePersistentState<string[]>(
-    "aurea_favorites_v1",
+    "proyecto_atlas_favorites_v2",
     ["prop-villa-canto-agua", "prop-sky-penthouse-lumina"]
   );
   const [comparedIds, setComparedIds] = usePersistentState<string[]>(
-    "aurea_compared_v1",
+    "proyecto_atlas_compared_v2",
     [
       "prop-villa-canto-agua",
       "prop-sky-penthouse-lumina",
-      "prop-ateliers-pok-ta-pok",
+      "prop-isla-pok-ta-pok",
     ]
   );
   const [prospects, setProspects] = usePersistentState<CrmProspect[]>(
-    "aurea_prospects_v1",
+    "proyecto_atlas_prospects_v2",
     INITIAL_PROSPECTS
   );
   const [clients, setClients] = usePersistentState<PrivateClient[]>(
-    "aurea_clients_v1",
+    "proyecto_atlas_clients_v2",
     INITIAL_CLIENTS
   );
   const [appointments, setAppointments] = usePersistentState<VipAppointment[]>(
-    "aurea_appointments_v1",
+    "proyecto_atlas_appointments_v2",
     INITIAL_VIP_APPOINTMENTS
   );
   const [brokers, setBrokers] = usePersistentState<BrokerAgentMember[]>(
-    "aurea_brokers_v1",
+    "proyecto_atlas_brokers_v2",
     INITIAL_BROKER_TEAM
   );
   const [roundRobinPointer, setRoundRobinPointer] = usePersistentState<number>(
-    "aurea_round_robin_ptr_v1",
+    "proyecto_atlas_round_robin_ptr_v2",
     0
   );
   const [driveAudits, setDriveAudits] = usePersistentState<DriveAuditItem[]>(
-    "aurea_drive_audits_v1",
+    "proyecto_atlas_drive_audits_v2",
     INITIAL_DRIVE_AUDITS
   );
   const [securityLogs, setSecurityLogs] = usePersistentState<
     SecurityAuditEvent[]
-  >("aurea_security_logs_v1", INITIAL_SECURITY_LOGS);
+  >("proyecto_atlas_security_logs_v2", INITIAL_SECURITY_LOGS);
   const [currency, setCurrency] = usePersistentState<CurrencyCode>(
-    "aurea_currency_v1",
+    "proyecto_atlas_currency_v2",
     "USD"
   );
   const [membershipTier, setMembershipTier] =
     usePersistentState<MembershipTier>(
-      "aurea_membership_tier_v1",
+      "proyecto_atlas_membership_tier_v2",
       "AGENCIA_CORPORATIVA"
     );
   const [whiteLabel, setWhiteLabel] = usePersistentState<WhiteLabelConfig>(
-    "aurea_whitelabel_v1",
+    "proyecto_atlas_whitelabel_v2",
     {
-      agencyName: "AUREA",
-      monogram: "AU",
-      subtitle: "SOVEREIGN ASSETS",
+      agencyName: "PROYECTO ATLAS",
+      monogram: "PA",
+      subtitle: "REAL ESTATE PLATFORM",
       agencySplitPct: 40,
       brokerSplitPct: 60,
     }
   );
 
-  // Navegación y modales
-  const [activeNav, setActiveNav] = useState<NavSectionId>("executive");
+  // Página de Inicio ("home") activa por defecto para mostrar el resumen de Proyecto Atlas y el CEO Andre Fraga
+  const [activeNav, setActiveNav] = useState<NavSectionId>("home");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
@@ -183,7 +185,7 @@ export const AureaSovereignApp: React.FC = () => {
       category,
       severity,
       description,
-      originIp: "189.203.44.12 (Sesión Soberana)",
+      originIp: "189.203.44.12 (Sesión Proyecto Atlas)",
     };
     setSecurityLogs((prev) => [nextEvent, ...prev.slice(0, 24)]);
   };
@@ -294,7 +296,7 @@ export const AureaSovereignApp: React.FC = () => {
         fullName: `Inversionista Patrimonial #${104 + roundRobinPointer}`,
         titleOrOffice: "Family Office Internacional",
         phone: "+529984109920",
-        email: "familyoffice@sovereigncapital.ch",
+        email: "familyoffice@proyectoatlas.mx",
         budgetUsd: sampleProp.priceUsd,
         source: "Round-Robin Desk",
         interestedPropertyId: sampleProp.id,
@@ -329,6 +331,17 @@ export const AureaSovereignApp: React.FC = () => {
     items: { id: NavSectionId; label: string; icon: string; badge?: string }[];
   }[] = [
     {
+      groupTitle: "PROYECTO ATLAS",
+      items: [
+        {
+          id: "home",
+          label: "Inicio · Qué es Proyecto Atlas",
+          icon: "home_work",
+          badge: "CEO",
+        },
+      ],
+    },
+    {
       groupTitle: "OPERACIONES",
       items: [
         { id: "executive", label: "Tablero Ejecutivo", icon: "space_dashboard" },
@@ -361,7 +374,11 @@ export const AureaSovereignApp: React.FC = () => {
           label: "Calculadora Financiera & ROI",
           icon: "calculate",
         },
-        { id: "copilot", label: "Atlas Copilot (IA)", icon: "temp_preferences_custom" },
+        {
+          id: "copilot",
+          label: "Atlas Copilot (IA)",
+          icon: "temp_preferences_custom",
+        },
       ],
     },
     {
@@ -401,28 +418,36 @@ export const AureaSovereignApp: React.FC = () => {
         />
       )}
 
-      {/* 1. SIDEBAR LATERAL FIJO SOBERANO (w-72 / 18rem) */}
+      {/* 1. SIDEBAR LATERAL FIJO (w-72 / 18rem) CON EL LOGO OFICIAL DE PROYECTO ATLAS */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#1c1b1a] bg-[#000000] text-white transition-transform duration-200 lg:translate-x-0 ${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Encabezado con Monograma AUREA y subtítulo SOVEREIGN ASSETS */}
-        <div className="border-b border-white/10 px-6 py-5">
+        {/* Encabezado con Logo Oficial de Proyecto Atlas */}
+        <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center border border-[#755a34] bg-[#1c1b1a] font-['Outfit'] text-sm font-bold tracking-widest text-[#faeedd]">
-                {whiteLabel.monogram}
+            <button
+              type="button"
+              onClick={() => handleSelectNav("home")}
+              className="flex items-center gap-3 text-left group"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0077cc]/50 bg-[#091e3a] p-1.5 shadow-sm transition group-hover:border-[#00c2ff]">
+                <AtlasBrandLogo
+                  variant="icon"
+                  theme="dark"
+                  className="h-9 w-9"
+                />
               </div>
               <div>
-                <div className="font-['Outfit'] text-lg font-bold tracking-[0.18em] text-white">
+                <div className="font-['Outfit'] text-base font-bold tracking-[0.12em] text-white">
                   {whiteLabel.agencyName}
                 </div>
-                <div className="font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.24em] text-[#755a34]">
+                <div className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00c2ff]">
                   {whiteLabel.subtitle}
                 </div>
               </div>
-            </div>
+            </button>
             <button
               type="button"
               onClick={() => setMobileSidebarOpen(false)}
@@ -445,13 +470,13 @@ export const AureaSovereignApp: React.FC = () => {
         </div>
 
         {/* Navegación Principal Agrupada */}
-        <div className="flex-1 space-y-5 overflow-y-auto px-4 py-5">
+        <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
           {navGroups.map((group) => (
             <div key={group.groupTitle}>
               <div className="px-2.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
                 {group.groupTitle}
               </div>
-              <nav className="mt-2 space-y-1">
+              <nav className="mt-1.5 space-y-1">
                 {group.items.map((item) => {
                   const isActive = activeNav === item.id;
                   return (
@@ -461,7 +486,7 @@ export const AureaSovereignApp: React.FC = () => {
                       onClick={() => handleSelectNav(item.id)}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left font-['Outfit'] text-xs font-medium transition ${
                         isActive
-                          ? "bg-[#755a34] text-white shadow-xs"
+                          ? "bg-[#0077cc] text-white shadow-xs"
                           : "text-neutral-300 hover:bg-[#1c1b1a] hover:text-white"
                       }`}
                     >
@@ -475,8 +500,8 @@ export const AureaSovereignApp: React.FC = () => {
                         <span
                           className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                             isActive
-                              ? "bg-black/30 text-[#faeedd]"
-                              : "bg-white/10 text-neutral-300"
+                              ? "bg-black/30 text-white"
+                              : "bg-white/10 text-[#00c2ff]"
                           }`}
                         >
                           {item.badge}
@@ -491,16 +516,16 @@ export const AureaSovereignApp: React.FC = () => {
 
           {/* Acceso Rápido: Favoritos, Bóveda de Seguridad y Generador de Dossier */}
           <div>
-            <div className="px-2.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d9b88c]">
+            <div className="px-2.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00c2ff]">
               ACCESO RÁPIDO PATRIMONIAL
             </div>
-            <div className="mt-2 space-y-1">
+            <div className="mt-1.5 space-y-1">
               <button
                 type="button"
                 onClick={() => handleSelectNav("favorites")}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left font-['Outfit'] text-xs font-medium transition ${
                   activeNav === "favorites"
-                    ? "bg-[#755a34] text-white"
+                    ? "bg-[#0077cc] text-white"
                     : "text-neutral-300 hover:bg-[#1c1b1a] hover:text-white"
                 }`}
               >
@@ -520,7 +545,7 @@ export const AureaSovereignApp: React.FC = () => {
                 onClick={() => handleSelectNav("security")}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left font-['Outfit'] text-xs font-medium transition ${
                   activeNav === "security"
-                    ? "bg-[#755a34] text-white"
+                    ? "bg-[#0077cc] text-white"
                     : "text-neutral-300 hover:bg-[#1c1b1a] hover:text-white"
                 }`}
               >
@@ -538,10 +563,10 @@ export const AureaSovereignApp: React.FC = () => {
                   setDossierModalProp(properties[0]);
                   setMobileSidebarOpen(false);
                 }}
-                className="flex w-full items-center justify-between rounded-lg border border-[#755a34]/50 bg-[#1c1b1a] px-3 py-2 text-left font-['Outfit'] text-xs font-semibold text-[#faeedd] transition hover:bg-[#755a34] hover:text-white"
+                className="flex w-full items-center justify-between rounded-lg border border-[#0077cc]/50 bg-[#091e3a] px-3 py-2 text-left font-['Outfit'] text-xs font-semibold text-white transition hover:bg-[#0077cc]"
               >
                 <span className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[17px]">
+                  <span className="material-symbols-outlined text-[17px] text-[#00c2ff]">
                     description
                   </span>
                   <span>Generador de Dossier PDF</span>
@@ -552,22 +577,28 @@ export const AureaSovereignApp: React.FC = () => {
           </div>
         </div>
 
-        {/* Tarjeta de Usuario/Broker Autenticado al Pie */}
+        {/* Tarjeta del CEO Autenticado al Pie del Sidebar (Andre Fraga) */}
         <div className="border-t border-white/10 bg-[#1c1b1a] p-4">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#755a34] bg-black font-['Outfit'] text-xs font-bold text-[#faeedd]">
-                AG
-              </div>
+            <button
+              type="button"
+              onClick={() => handleSelectNav("home")}
+              className="flex items-center gap-3 text-left"
+            >
+              <img
+                src="/andre-fraga-ceo.jpg"
+                alt="Andre Fraga — CEO"
+                className="h-10 w-10 rounded-full border border-[#00b4f5] object-cover object-top"
+              />
               <div className="min-w-0">
-                <div className="truncate font-['Outfit'] text-xs font-semibold text-white">
-                  Alexis Garzón
+                <div className="truncate font-['Outfit'] text-xs font-bold text-white">
+                  Andre Fraga
                 </div>
-                <div className="truncate font-['Outfit'] text-[10px] uppercase tracking-wider text-[#d9b88c]">
-                  {MEMBERSHIP_LABELS[membershipTier]}
+                <div className="truncate font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#00c2ff]">
+                  CEO · {MEMBERSHIP_LABELS[membershipTier]}
                 </div>
               </div>
-            </div>
+            </button>
 
             <button
               type="button"
@@ -585,9 +616,9 @@ export const AureaSovereignApp: React.FC = () => {
 
       {/* CONTENEDOR PRINCIPAL A LA DERECHA DEL SIDEBAR */}
       <div className="lg:pl-72">
-        {/* 2. HEADER SUPERIOR FLOTANTE (h-20) */}
+        {/* 2. HEADER SUPERIOR FLOTANTE (h-20) CON INSIGNIA DE PROYECTO ATLAS */}
         <header className="sticky top-0 z-30 flex h-20 items-center justify-between gap-4 border-b border-[#eaedf0] bg-white/95 px-4 backdrop-blur-md sm:px-8">
-          {/* Izquierda: Botón Hamburguesa (Móvil) + Barra de Búsqueda Predictiva Ctrl+K */}
+          {/* Izquierda: Botón Hamburguesa (Móvil) + Logo rápido + Barra de Búsqueda Predictiva Ctrl+K */}
           <div className="flex flex-1 items-center gap-3">
             <button
               type="button"
@@ -600,8 +631,21 @@ export const AureaSovereignApp: React.FC = () => {
               </span>
             </button>
 
+            {/* Insignia clicable de Proyecto Atlas en el Header */}
+            <button
+              type="button"
+              onClick={() => setActiveNav("home")}
+              className="hidden items-center gap-2 rounded-lg border border-[#eaedf0] bg-[#f8f9fa] px-2.5 py-1.5 transition hover:border-[#0077cc] sm:inline-flex"
+              title="Ir a la Página de Inicio de Proyecto Atlas"
+            >
+              <AtlasBrandLogo variant="icon" theme="light" className="h-6 w-6" />
+              <span className="font-['Outfit'] text-xs font-bold tracking-wider text-[#091e3a]">
+                PROYECTO ATLAS
+              </span>
+            </button>
+
             <div className="relative w-full max-w-md">
-              <div className="flex items-center rounded-lg border border-[#eaedf0] bg-[#f2f4f6] px-3 py-2 focus-within:border-black focus-within:bg-white">
+              <div className="flex items-center rounded-lg border border-[#eaedf0] bg-[#f2f4f6] px-3 py-2 focus-within:border-[#091e3a] focus-within:bg-white">
                 <span className="material-symbols-outlined mr-2 text-[18px] text-neutral-500">
                   search
                 </span>
@@ -614,7 +658,7 @@ export const AureaSovereignApp: React.FC = () => {
                     setSearchQuery(e.target.value);
                     setSearchDropdownOpen(true);
                   }}
-                  placeholder="Buscar activo, zona o código (Ctrl + K)..."
+                  placeholder="Buscar activo, zona o código en Proyecto Atlas (Ctrl + K)..."
                   className="w-full bg-transparent text-xs text-black placeholder-neutral-500 focus:outline-none"
                 />
                 <kbd className="hidden rounded border border-neutral-300 bg-white px-1.5 py-0.5 font-['Outfit'] text-[10px] font-semibold text-neutral-500 sm:inline-block">
@@ -625,8 +669,8 @@ export const AureaSovereignApp: React.FC = () => {
               {/* Resultados predictivos */}
               {searchDropdownOpen && predictiveResults.length > 0 && (
                 <div className="absolute left-0 right-0 top-12 z-50 rounded-xl border border-[#1c1b1a] bg-white p-2 shadow-2xl">
-                  <div className="px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34]">
-                    Resultados en Cartera Soberana
+                  <div className="px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#0077cc]">
+                    Resultados en Proyecto Atlas
                   </div>
                   {predictiveResults.map((prop) => (
                     <button
@@ -646,7 +690,7 @@ export const AureaSovereignApp: React.FC = () => {
                           {prop.zone} · {prop.code}
                         </div>
                       </div>
-                      <span className="font-['Outfit'] text-xs font-bold text-[#755a34]">
+                      <span className="font-['Outfit'] text-xs font-bold text-[#091e3a]">
                         {formatSovereignCurrency(prop.priceUsd, currency, true)}
                       </span>
                     </button>
@@ -656,7 +700,7 @@ export const AureaSovereignApp: React.FC = () => {
             </div>
           </div>
 
-          {/* Derecha: Selector de Divisas, Registrar Prospecto, Píldora Membresía y Perfil */}
+          {/* Derecha: Selector de Divisas, Registrar Prospecto, Píldora Membresía y Perfil CEO */}
           <div className="flex items-center gap-2.5">
             {/* Selector de Divisas USD / MXN / EUR */}
             <div
@@ -674,7 +718,7 @@ export const AureaSovereignApp: React.FC = () => {
                     onClick={() => setCurrency(code)}
                     className={`rounded-md px-2.5 py-1 font-['Outfit'] text-xs font-semibold transition ${
                       active
-                        ? "bg-black text-[#faeedd] shadow-xs"
+                        ? "bg-[#091e3a] text-white shadow-xs"
                         : "text-neutral-600 hover:text-black"
                     }`}
                   >
@@ -688,35 +732,40 @@ export const AureaSovereignApp: React.FC = () => {
             <button
               type="button"
               onClick={() => setQuickLeadModalOpen(true)}
-              className="hidden items-center gap-1.5 rounded-lg bg-black px-3.5 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#755a34] md:inline-flex"
+              className="hidden items-center gap-1.5 rounded-lg bg-[#091e3a] px-3.5 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc] md:inline-flex"
             >
-              <span className="material-symbols-outlined text-[16px] text-[#faeedd]">
+              <span className="material-symbols-outlined text-[16px] text-[#00c2ff]">
                 person_add
               </span>
               Registrar Prospecto
             </button>
 
-            {/* Píldora de Estado de Membresía del Asesor */}
+            {/* Píldora de Estado de Membresía */}
             <button
               type="button"
               onClick={() => setActiveNav("security")}
-              className="hidden items-center gap-1.5 rounded-full border border-[#755a34]/40 bg-[#faeedd] px-3 py-1.5 font-['Outfit'] text-[11px] font-semibold text-[#755a34] xl:inline-flex"
+              className="hidden items-center gap-1.5 rounded-full border border-[#0077cc]/30 bg-[#eef6fc] px-3 py-1.5 font-['Outfit'] text-[11px] font-semibold text-[#091e3a] xl:inline-flex"
             >
-              <span className="material-symbols-outlined text-[14px]">
+              <span className="material-symbols-outlined text-[14px] text-[#0077cc]">
                 verified
               </span>
               {MEMBERSHIP_LABELS[membershipTier]}
             </button>
 
-            {/* Menú de Perfil Rápido */}
+            {/* Menú de Perfil Rápido (CEO Andre Fraga) */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
-                className="flex h-10 items-center gap-2 rounded-lg border border-[#eaedf0] bg-white px-2.5 text-xs font-medium text-black hover:border-black"
+                className="flex h-10 items-center gap-2 rounded-lg border border-[#eaedf0] bg-white px-2.5 text-xs font-medium text-black hover:border-[#091e3a]"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black font-['Outfit'] text-[10px] font-bold text-[#faeedd]">
-                  AG
+                <img
+                  src="/andre-fraga-ceo.jpg"
+                  alt="Andre Fraga"
+                  className="h-7 w-7 rounded-full object-cover object-top"
+                />
+                <span className="hidden font-['Outfit'] text-xs font-semibold text-[#091e3a] sm:inline">
+                  Andre Fraga
                 </span>
                 <span className="material-symbols-outlined text-[16px]">
                   expand_more
@@ -724,22 +773,42 @@ export const AureaSovereignApp: React.FC = () => {
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-[#1c1b1a] bg-white p-2 shadow-xl">
-                  <div className="border-b border-[#eaedf0] px-3 py-2">
-                    <div className="font-['Outfit'] text-xs font-semibold text-black">
-                      Alexis Garzón · Managing Partner
-                    </div>
-                    <div className="text-[11px] text-neutral-500">
-                      {MEMBERSHIP_LABELS[membershipTier]}
+                <div className="absolute right-0 top-12 z-50 w-60 rounded-xl border border-[#1c1b1a] bg-white p-2 shadow-xl">
+                  <div className="flex items-center gap-2.5 border-b border-[#eaedf0] px-3 py-2.5">
+                    <img
+                      src="/andre-fraga-ceo.jpg"
+                      alt="Andre Fraga"
+                      className="h-9 w-9 rounded-full object-cover object-top"
+                    />
+                    <div>
+                      <div className="font-['Outfit'] text-xs font-bold text-[#091e3a]">
+                        Andre Fraga
+                      </div>
+                      <div className="text-[11px] text-neutral-500">
+                        CEO & Founder · Proyecto Atlas
+                      </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveNav("home");
+                      setProfileMenuOpen(false);
+                    }}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-neutral-700 hover:bg-[#f2f4f6]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      home_work
+                    </span>
+                    Inicio · Resumen Proyecto Atlas
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
                       setActiveNav("security");
                       setProfileMenuOpen(false);
                     }}
-                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-neutral-700 hover:bg-[#f2f4f6]"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-neutral-700 hover:bg-[#f2f4f6]"
                   >
                     <span className="material-symbols-outlined text-[16px]">
                       shield_lock
@@ -767,6 +836,15 @@ export const AureaSovereignApp: React.FC = () => {
 
         {/* 3. ÁREA PRINCIPAL DINÁMICA */}
         <main className="mx-auto max-w-[1440px] p-4 sm:p-8">
+          {activeNav === "home" && (
+            <AtlasHomeOverviewView
+              properties={properties}
+              currency={currency}
+              onNavigate={(sec) => setActiveNav(sec)}
+              onOpenDossier={(prop) => setDossierModalProp(prop)}
+            />
+          )}
+
           {activeNav === "executive" && (
             <ExecutiveDashboardView
               properties={properties}
@@ -881,7 +959,7 @@ export const AureaSovereignApp: React.FC = () => {
                 recordSecurityEvent(
                   "CAMBIO_MEMBRESIA",
                   "INFO",
-                  `Nivel de membresía del asesor actualizado a ${MEMBERSHIP_LABELS[tier]}.`
+                  `Nivel de membresía actualizado a ${MEMBERSHIP_LABELS[tier]}.`
                 );
               }}
               securityLogs={securityLogs}
