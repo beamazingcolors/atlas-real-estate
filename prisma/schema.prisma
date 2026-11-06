@@ -1,0 +1,526 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. USUARIOS, ORGANIZACIÓN Y SEGURIDAD
+// ==========================================
+
+enum UserRole {
+  SUPERADMIN
+  DIRECTOR
+  DEVELOPER_ADMIN
+  SALES_MANAGER
+  BROKER_AGENT
+  VALUATION_ANALYST
+}
+
+model Organization {
+  id           String        @id @default(uuid())
+  slug         String        @unique
+  legalName    String
+  tradeName    String
+  rfc          String?       @db.VarChar(13)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  users        User[]
+  developments Development[]
+  leads        Lead[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String           @id @default(uuid())
+  organizationId String
+  email          String           @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  phone          String?
+  role           UserRole         @default(BROKER_AGENT)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedLeads  Lead[]           @relation("AgentLeads")
+  deals          Deal[]           @relation("AgentDeals")
+  activities     Activity[]
+  valuations     ValuationStudy[]
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("users")
+}
+
+// ==========================================
+// 2. INVENTARIO MAESTRO Y DESARROLLOS
+// ==========================================
+
+enum DevelopmentStatus {
+  PLANNING
+  PRE_SALE
+  UNDER_CONSTRUCTION
+  DELIVERY_READY
+  COMPLETED
+  SOLD_OUT
+}
+
+enum UnitStatus {
+  AVAILABLE
+  RESERVED
+  BLOCKED
+  UNDER_CONTRACT
+  SOLD
+}
+
+enum Currency {
+  MXN
+  USD
+}
+
+model Development {
+  id                String            @id @default(uuid())
+  organizationId    String
+  name              String
+  slug              String            @unique
+  description       String?           @db.Text
+  status            DevelopmentStatus @default(PRE_SALE)
+
+  // Ubicación geoespacial (Mercado Mexicano)
+  state             String
+  city              String
+  municipality      String
+  neighborhood      String
+  addressLine       String
+  postalCode        String            @db.VarChar(10)
+  latitude          Decimal           @db.Decimal(10, 7)
+  longitude         Decimal           @db.Decimal(10, 7)
+
+  // Métricas maestras y régimen condominal
+  totalPhases       Int               @default(1)
+  totalUnits        Int               @default(0)
+  constructionStart DateTime?
+  estimatedDelivery DateTime?
+  amenities         String[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  phases            Phase[]
+  typologies        Typology[]
+  units             Unit[]
+  paymentPlans      PaymentPlan[]
+
+  @@index([organizationId])
+  @@index([city, state])
+  @@map("developments")
+}
+
+model Phase {
+  id             String       @id @default(uuid())
+  developmentId  String
+  name           String       // Ej: Torre Poniente, Fase I, Cluster Norte
+  sequenceOrder  Int          @default(1)
+  deliveryDate   DateTime?
+  isLaunched     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  development    Development  @relation(fields: [developmentId], references: [id], onDelete: Cascade)
+  units          Unit[]
+
+  @@index([developmentId])
+  @@map("phases")
+}
+
+model Typology {
+  id             String       @id @default(uuid())
+  developmentId  String
+  code           String       // Ej: TIPO-A1, PH-02, LOFT-GARDEN
+  name           String
+  bedrooms       Int          @default(1)
+  bathrooms      Decimal      @db.Decimal(3, 1)
+  halfBathrooms  Int          @default(0)
+  parkingSpots   Int          @default(1)
+
+  interiorAreaM2 Decimal      @db.Decimal(8, 2)
+  exteriorAreaM2 Decimal      @default(0.00) @db.Decimal(8, 2)
+  totalAreaM2    Decimal      @db.Decimal(8, 2)
+
+  floorPlanUrl   String?
+  features       String[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  development    Development  @relation(fields: [developmentId], references: [id], onDelete: Cascade)
+  units          Unit[]
+
+  @@index([developmentId])
+  @@map("typologies")
+}
+
+model Unit {
+  id             String       @id @default(uuid())
+  developmentId  String
+  phaseId        String
+  typologyId     String
+  unitNumber     String       // Ej: "1004", "PH-B"
+  floorLevel     Int          @default(1)
+  status         UnitStatus   @default(AVAILABLE)
+
+  // Precios y Moneda (Base MXN)
+  basePrice      Decimal      @db.Decimal(14, 2)
+  currentPrice   Decimal      @db.Decimal(14, 2)
+  pricePerM2     Decimal      @db.Decimal(10, 2)
+  currency       Currency     @default(MXN)
+  maintenanceFee Decimal?     @db.Decimal(10, 2)
+
+  orientation    String?      // Ej: Norte, Poniente, Vista Parque
+  isCorner       Boolean      @default(false)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  development    Development  @relation(fields: [developmentId], references: [id], onDelete: Restrict)
+  phase          Phase        @relation(fields: [phaseId], references: [id], onDelete: Restrict)
+  typology       Typology     @relation(fields: [typologyId], references: [id], onDelete: Restrict)
+
+  deals          Deal[]
+  quotations     Quotation[]
+  reservations   Reservation[]
+
+  @@unique([phaseId, unitNumber])
+  @@index([developmentId, status])
+  @@index([pricePerM2])
+  @@index([floorLevel])
+  @@map("units")
+}
+
+model PaymentPlan {
+  id                      String       @id @default(uuid())
+  developmentId           String
+  name                    String       // Ej: "30-50-20 Preventa", "80-20 Patrimonial"
+  downPaymentPct          Decimal      @db.Decimal(5, 2) // % Enganche inicial
+  deferredInstallmentsPct Decimal      @db.Decimal(5, 2) // % Mensualidades en obra
+  monthsToDeliver         Int          @default(18)      // Plazo de obra en meses
+  finalBalancePct         Decimal      @db.Decimal(5, 2) // % Liquidación contra escritura
+  discountPct             Decimal      @default(0.00) @db.Decimal(5, 2)
+  isActive                Boolean      @default(true)
+
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+
+  development             Development  @relation(fields: [developmentId], references: [id], onDelete: Cascade)
+  quotations              Quotation[]
+
+  @@index([developmentId])
+  @@map("payment_plans")
+}
+
+// ==========================================
+// 3. CRM COMERCIAL, PIPELINE Y NEGOCIACIONES
+// ==========================================
+
+enum LeadSource {
+  CAMPAIGN_FACEBOOK
+  CAMPAIGN_GOOGLE
+  PORTAL_INMOBILIARIO
+  ORGANIC_WEB
+  BROKER_REFERRAL
+  DIRECT_WALK_IN
+  WHATSAPP
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  ENGAGED
+  QUALIFIED
+  UNQUALIFIED
+}
+
+enum DealStage {
+  PROSPECT
+  DISCOVERY_CALL
+  SHOWING_SCHEDULED
+  VISIT_COMPLETED
+  NEGOTIATION
+  RESERVED
+  CONTRACT_IN_REVIEW
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+model Lead {
+  id             String       @id @default(uuid())
+  organizationId String
+  assignedToId   String?
+  firstName      String
+  lastName       String
+  email          String
+  phone          String
+  source         LeadSource   @default(ORGANIC_WEB)
+  status         LeadStatus   @default(NEW)
+
+  budgetMin      Decimal?     @db.Decimal(14, 2)
+  budgetMax      Decimal?     @db.Decimal(14, 2)
+  currency       Currency     @default(MXN)
+  targetZones    String[]
+  investmentGoal String?      // Patrimonial, Rentas Cortas, Plusvalía en Preventa
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo     User?        @relation("AgentLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+  deals          Deal[]
+  activities     Activity[]
+
+  @@index([organizationId])
+  @@index([assignedToId])
+  @@index([email])
+  @@map("leads")
+}
+
+model Deal {
+  id             String       @id @default(uuid())
+  leadId         String
+  agentId        String
+  unitId         String?
+  stage          DealStage    @default(PROSPECT)
+
+  dealValue      Decimal      @db.Decimal(14, 2)
+  currency       Currency     @default(MXN)
+  probability    Int          @default(10)
+  expectedClose  DateTime?
+  lostReason     String?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  agent          User         @relation("AgentDeals", fields: [agentId], references: [id], onDelete: Restrict)
+  unit           Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  activities     Activity[]
+  quotations     Quotation[]
+  reservations   Reservation[]
+
+  @@index([leadId])
+  @@index([agentId])
+  @@index([unitId])
+  @@index([stage])
+  @@map("deals")
+}
+
+enum ActivityType {
+  WHATSAPP_MESSAGE
+  PHONE_CALL
+  EMAIL_SENT
+  SHOWROOM_VISIT
+  ONLINE_MEETING
+  TASK_FOLLOW_UP
+  NOTE
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  dealId      String?
+  leadId      String?
+  userId      String
+  type        ActivityType
+  subject     String
+  body        String?      @db.Text
+  isCompleted Boolean      @default(false)
+  scheduledAt DateTime?
+  completedAt DateTime?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  deal        Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([dealId])
+  @@index([userId])
+  @@map("activities")
+}
+
+model Quotation {
+  id                   String       @id @default(uuid())
+  dealId               String
+  unitId               String
+  paymentPlanId        String
+  quoteNumber          String       @unique // Folio: Q-2026-0041
+
+  finalPrice           Decimal      @db.Decimal(14, 2)
+  currency             Currency     @default(MXN)
+  downPaymentAmount    Decimal      @db.Decimal(14, 2)
+  monthlyInstallment   Decimal      @db.Decimal(14, 2)
+  numberOfInstallments Int
+  deliveryBalance      Decimal      @db.Decimal(14, 2)
+
+  validUntil           DateTime
+  isAccepted           Boolean      @default(false)
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  deal                 Deal         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  unit                 Unit         @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  paymentPlan          PaymentPlan  @relation(fields: [paymentPlanId], references: [id], onDelete: Restrict)
+
+  @@index([dealId])
+  @@index([unitId])
+  @@map("quotations")
+}
+
+enum ReservationStatus {
+  PENDING_PAYMENT
+  VALIDATED
+  EXPIRED
+  CANCELLED
+  APPLIED_TO_CONTRACT
+}
+
+model Reservation {
+  id             String            @id @default(uuid())
+  dealId         String
+  unitId         String
+  amount         Decimal           @db.Decimal(10, 2)
+  currency       Currency          @default(MXN)
+  status         ReservationStatus @default(PENDING_PAYMENT)
+  proofOfPayment String?
+  expiresAt      DateTime
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  deal           Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  unit           Unit              @relation(fields: [unitId], references: [id], onDelete: Restrict)
+
+  @@index([unitId])
+  @@map("reservations")
+}
+
+// ==========================================
+// 4. MOTOR DE VALUACIÓN E INTELIGENCIA
+// ==========================================
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  PENTHOUSE
+  LAND_LOT
+  COMMERCIAL_LOCAL
+}
+
+enum ConservationState {
+  LUXURY_REMODELED
+  EXCELLENT
+  GOOD
+  REGULAR
+  REQUIRES_REPAIR
+}
+
+enum ValuationMethod {
+  COMPARABLE_MARKET_SALES
+  INCOME_CAPITALIZATION
+  HEDONIC_REGRESSION_AI
+  HYBRID_WEIGHTED
+}
+
+model SubmarketZone {
+  id                 String           @id @default(uuid())
+  name               String
+  city               String
+  state              String
+  avgPriceM2         Decimal          @db.Decimal(10, 2)
+  avgRentM2          Decimal          @db.Decimal(10, 2)
+  historicalCapRate  Decimal          @db.Decimal(5, 2)
+  annualAppreciation Decimal          @db.Decimal(5, 2)
+  polygonGeoJson     Json?
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  valuations         ValuationStudy[]
+
+  @@unique([name, city])
+  @@index([city, state])
+  @@map("submarket_zones")
+}
+
+model ValuationStudy {
+  id                String                @id @default(uuid())
+  userId            String
+  submarketZoneId   String?
+  folioNumber       String                @unique
+
+  propertyType      PropertyType          @default(APARTMENT)
+  totalAreaM2       Decimal               @db.Decimal(8, 2)
+  interiorAreaM2    Decimal               @db.Decimal(8, 2)
+  ageYears          Int                   @default(0)
+  conservationState ConservationState     @default(EXCELLENT)
+  parkingSpots      Int                   @default(1)
+  amenitiesCount    Int                   @default(0)
+
+  latitude          Decimal               @db.Decimal(10, 7)
+  longitude         Decimal               @db.Decimal(10, 7)
+
+  methodUsed        ValuationMethod       @default(HYBRID_WEIGHTED)
+  estimatedValue    Decimal               @db.Decimal(14, 2)
+  estimatedPriceM2  Decimal               @db.Decimal(10, 2)
+  valueRangeMin     Decimal               @db.Decimal(14, 2)
+  valueRangeMax     Decimal               @db.Decimal(14, 2)
+  confidenceScore   Decimal               @db.Decimal(5, 2)
+
+  projectedCapRate  Decimal?              @db.Decimal(5, 2)
+  projectedRoi      Decimal?              @db.Decimal(5, 2)
+  appreciation3Y    Decimal?              @db.Decimal(5, 2)
+  appreciation5Y    Decimal?              @db.Decimal(5, 2)
+
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  submarketZone     SubmarketZone?        @relation(fields: [submarketZoneId], references: [id], onDelete: SetNull)
+  comparables       ValuationComparable[]
+
+  @@index([userId])
+  @@index([submarketZoneId])
+  @@map("valuation_studies")
+}
+
+model ValuationComparable {
+  id               String         @id @default(uuid())
+  valuationStudyId String
+  sourceName       String
+  sourceUrl        String?
+
+  listingPrice     Decimal        @db.Decimal(14, 2)
+  totalAreaM2      Decimal        @db.Decimal(8, 2)
+  pricePerM2       Decimal        @db.Decimal(10, 2)
+  distanceMeters   Int
+  similarityFactor Decimal        @db.Decimal(5, 2)
+
+  isOutlier        Boolean        @default(false)
+
+  createdAt        DateTime       @default(now())
+
+  valuationStudy   ValuationStudy @relation(fields: [valuationStudyId], references: [id], onDelete: Cascade)
+
+  @@index([valuationStudyId])
+  @@map("valuation_comparables")
+}
