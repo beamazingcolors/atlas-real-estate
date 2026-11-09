@@ -56,6 +56,10 @@ import {
   DriveAuditView,
   SecurityVaultView,
 } from "./views/CorporateAndSecurityViews";
+import {
+  DeveloperEcosystemView,
+  StrategicMasterplanView,
+} from "./views/StrategicMasterplanAndEcosystemViews";
 
 const MEMBERSHIP_LABELS: Record<MembershipTier, string> = {
   BASICA: "Nivel Básico",
@@ -490,19 +494,37 @@ export const AureaSovereignApp: React.FC = () => {
     }, 1100);
   };
 
+  // Handler de actualización en tiempo real desde Portal de Desarrolladores
+  const handleUpdatePropertyRealtime = (
+    propertyId: string,
+    updates: Partial<
+      Pick<AureaProperty, "availableUnits" | "priceUsd" | "deliveryStatus">
+    >
+  ) => {
+    setProperties((prev) =>
+      prev.map((p) => (p.id === propertyId ? { ...p, ...updates } : p))
+    );
+  };
+
   // Secciones del Sidebar (sin badges ni dots, solo tipografía y cifras limpias)
   const navGroups: {
     groupTitle: string;
     items: { id: NavSectionId; label: string; icon: string; meta?: string }[];
   }[] = [
     {
-      groupTitle: "DIRECCIÓN",
+      groupTitle: "DIRECCIÓN & ESTRATEGIA",
       items: [
         {
           id: "home",
           label: "Inicio · Proyecto Atlas",
           icon: "home_work",
           meta: "I",
+        },
+        {
+          id: "masterplan",
+          label: "Plan Estratégico 5 Años",
+          icon: "timeline",
+          meta: "5Y",
         },
       ],
     },
@@ -516,25 +538,25 @@ export const AureaSovereignApp: React.FC = () => {
         },
         {
           id: "inventory",
-          label: "Inventario Completo",
+          label: "Inventario de Desarrollos",
           icon: "apartment",
           meta: `${properties.length}`,
         },
         {
           id: "crm",
-          label: "CRM Pipeline",
+          label: "CRM Inmobiliario",
           icon: "view_kanban",
           meta: `${prospects.length}`,
         },
-        { id: "clients", label: "Gestor de Clientes", icon: "groups" },
+        { id: "clients", label: "Portal para Clientes", icon: "groups" },
       ],
     },
     {
-      groupTitle: "HERRAMIENTAS DE ANÁLISIS",
+      groupTitle: "INTELIGENCIA & ANÁLISIS",
       items: [
         {
           id: "comparator",
-          label: "Comparador Multidimensional",
+          label: "Comparador Inteligente",
           icon: "compare_arrows",
           meta: `${comparedIds.length}/3`,
         },
@@ -545,27 +567,33 @@ export const AureaSovereignApp: React.FC = () => {
         },
         {
           id: "copilot",
-          label: "Atlas Copilot (IA)",
+          label: "Atlas AI (4 Agentes)",
           icon: "temp_preferences_custom",
         },
       ],
     },
     {
-      groupTitle: "CORPORATIVO & AGENCIA",
+      groupTitle: "ECOSISTEMA & MARKETPLACE",
       items: [
         {
+          id: "directory",
+          label: "Marketplace de Servicios",
+          icon: "menu_book",
+          meta: "8",
+        },
+        {
+          id: "developers",
+          label: "Portal Desarrolladores & API",
+          icon: "hub",
+        },
+        {
           id: "agency",
-          label: "Suite de Agencia Multi-Broker",
+          label: "Suite Agencia Multi-Broker",
           icon: "corporate_fare",
         },
         {
-          id: "directory",
-          label: "Directorio Inmobiliario",
-          icon: "menu_book",
-        },
-        {
           id: "drives",
-          label: "Auditoría Semanal de Drives",
+          label: "Gestión Documental & Drives",
           icon: "folder_managed",
         },
       ],
@@ -1072,6 +1100,14 @@ export const AureaSovereignApp: React.FC = () => {
               />
             )}
 
+            {activeNav === "masterplan" && (
+              <StrategicMasterplanView
+                currency={currency}
+                onNavigate={(sec) => handleSelectNav(sec)}
+                onOpenOptionDetail={(detail) => setOptionDetailModal(detail)}
+              />
+            )}
+
             {activeNav === "executive" && (
               <ExecutiveDashboardView
                 properties={properties}
@@ -1177,7 +1213,17 @@ export const AureaSovereignApp: React.FC = () => {
               />
             )}
 
-            {activeNav === "directory" && <DirectoryView />}
+            {activeNav === "directory" && (
+              <DirectoryView currency={currency} />
+            )}
+
+            {activeNav === "developers" && (
+              <DeveloperEcosystemView
+                properties={properties}
+                currency={currency}
+                onUpdatePropertyRealtime={handleUpdatePropertyRealtime}
+              />
+            )}
 
             {activeNav === "drives" && (
               <DriveAuditView

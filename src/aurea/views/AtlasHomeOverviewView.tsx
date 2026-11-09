@@ -9,6 +9,10 @@ import { formatSovereignCurrency } from "../storage/useAureaStorage";
 import { AtlasBrandLogo } from "../components/AtlasBrandLogo";
 import { DossierTabKey } from "../components/SovereignModals";
 import { RealInteractiveMap } from "../components/RealInteractiveMap";
+import {
+  STRATEGIC_5Y_ROADMAP,
+  TEN_CORE_MODULES,
+} from "../data/strategicPlanData";
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -589,6 +593,17 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                     folder_open
                   </span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate("masterplan")}
+                  className="group inline-flex items-center justify-center gap-2 border border-[#755a34] bg-[#755a34]/10 px-5 py-4 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
+                >
+                  <span>Plan Estratégico 5 Años &amp; 10 Módulos</span>
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">
+                    →
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -1149,6 +1164,151 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                 </div>
               </button>
             ))}
+          </div>
+        </section>
+      </ScrollRevealSection>
+
+      {/* =====================================================================
+          5.B PLAN ESTRATÉGICO (PRIMEROS 5 AÑOS) — ROADMAP & 10 MÓDULOS CORE
+      ====================================================================== */}
+      <ScrollRevealSection delayMs={125}>
+        <section
+          className={`border p-7 sm:p-10 ${
+            isDarkMode
+              ? "border-[#1e2f48] bg-[#0c1524] text-white"
+              : "border-[#e2e6ec] bg-white text-[#091e3a]"
+          }`}
+        >
+          <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0] pb-6 lg:flex-row lg:items-end">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="h-[1px] w-8 bg-[#755a34]" />
+                <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#755a34]">
+                  ATLAS REAL ESTATE · PLAN ESTRATÉGICO (PRIMEROS 5 AÑOS)
+                </span>
+              </div>
+              <h2 className="mt-2 font-['Outfit'] text-2xl font-semibold tracking-tight sm:text-3xl">
+                Sistema Operativo Inmobiliario: Roadmap a 5 Años &amp; 10 Módulos Principales
+              </h2>
+              <p className="mt-1 max-w-3xl text-xs leading-relaxed text-neutral-500">
+                Centralizamos captación, inventario, análisis, venta, postventa y administración mediante IA, un Marketplace de 8 verticales certificadas y un Portal para Desarrolladores en tiempo real.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onNavigate("masterplan")}
+              className="self-start bg-[#091e3a] px-5 py-3 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#0077cc]"
+            >
+              Abrir Plan Estratégico Completo &amp; Simulador MRR →
+            </button>
+          </div>
+
+          {/* Los 5 Años del Roadmap como Botones Interactivos */}
+          <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-5">
+            {STRATEGIC_5Y_ROADMAP.map((yr) => (
+              <button
+                key={yr.key}
+                type="button"
+                onClick={() =>
+                  onOpenOptionDetail({
+                    id: `home-roadmap-${yr.key}`,
+                    kicker: `ROADMAP ESTRATÉGICO · ${yr.label}`,
+                    title: `${yr.label}: ${yr.phaseTitle}`,
+                    subtitle: yr.subtitle,
+                    executiveSummary: yr.executiveThesis,
+                    keyMetrics: [
+                      {
+                        label: "Usuarios Meta",
+                        value: yr.kpis.registeredUsers,
+                      },
+                      {
+                        label: "Desarrollos",
+                        value: yr.kpis.publishedDevelopments,
+                      },
+                      {
+                        label: "MRR Proyectado",
+                        value: formatSovereignCurrency(
+                          yr.kpis.mrrUsd,
+                          currency
+                        ),
+                      },
+                    ],
+                    bulletPoints: yr.deliverables.map(
+                      (d) => `${d.title}: ${d.detail}`
+                    ),
+                    deliverables: yr.deliverables.map((d) => d.title),
+                    actionLabel: yr.actionButtonLabel,
+                    targetNav: yr.targetNav,
+                  })
+                }
+                className={`group flex flex-col justify-between border p-5 text-left transition hover:-translate-y-1 ${
+                  isDarkMode
+                    ? "border-slate-800 bg-[#091322] hover:border-[#00b4f5]"
+                    : "border-[#eaedf0] bg-[#f8f9fa] hover:border-[#091e3a] hover:bg-white"
+                }`}
+              >
+                <div>
+                  <span className="font-['Outfit'] text-[10px] font-bold uppercase tracking-[0.2em] text-[#0077cc]">
+                    {yr.label}
+                  </span>
+                  <h3 className="mt-1.5 font-['Outfit'] text-sm font-semibold">
+                    {yr.phaseTitle}
+                  </h3>
+                  <ul className="mt-3 space-y-1 text-[11px] text-neutral-500">
+                    {yr.deliverables.map((deliv) => (
+                      <li key={deliv.title} className="flex items-start gap-1">
+                        <span className="text-[#755a34]">▪</span>
+                        <span>{deliv.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <span className="mt-4 inline-flex items-center gap-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] group-hover:underline">
+                  <span>Ver Entregables &amp; KPIs</span>
+                  <span>→</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Botonera Directa a los 10 Módulos Principales */}
+          <div className="mt-7 border-t border-[#eaedf0] pt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#0077cc]">
+                ACCESO DIRECTO A LOS 10 MÓDULOS PRINCIPALES DE ATLAS REAL ESTATE
+              </span>
+              <span className="font-['Outfit'] text-[10px] uppercase tracking-wider text-neutral-400">
+                Clic para abrir cualquier módulo
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+              {TEN_CORE_MODULES.map((mod) => (
+                <button
+                  key={mod.number}
+                  type="button"
+                  onClick={() => onNavigate(mod.targetNav)}
+                  className={`flex flex-col justify-between border p-3.5 text-left transition hover:border-[#091e3a] ${
+                    isDarkMode
+                      ? "border-slate-800 bg-[#091322] text-white"
+                      : "border-[#eaedf0] bg-white text-[#091e3a]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-['Outfit'] text-xs font-bold text-[#755a34]">
+                      {mod.number}
+                    </span>
+                    <span className="font-['Outfit'] text-[9px] uppercase tracking-wider text-neutral-400">
+                      {mod.yearIntroduced}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 font-['Outfit'] text-xs font-semibold">
+                    {mod.title}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       </ScrollRevealSection>

@@ -32,6 +32,7 @@ export type ClientSegmentTag =
 
 export type NavSectionId =
   | "home"
+  | "masterplan"
   | "executive"
   | "inventory"
   | "crm"
@@ -41,9 +42,63 @@ export type NavSectionId =
   | "copilot"
   | "agency"
   | "directory"
+  | "developers"
   | "drives"
   | "security"
   | "favorites";
+
+export type StrategicYearKey =
+  | "YEAR_1"
+  | "YEAR_2"
+  | "YEAR_3"
+  | "YEAR_4"
+  | "YEAR_5";
+
+export type MarketplaceServiceCategory =
+  | "Notarías"
+  | "Brokers hipotecarios"
+  | "Aseguradoras"
+  | "Avalúos"
+  | "Arquitectos"
+  | "Interiorismo"
+  | "Mudanzas"
+  | "Administración de rentas";
+
+export type AiSpecializedAgentKey =
+  | "VENTAS"
+  | "INVERSIONES"
+  | "LEGAL"
+  | "POSTVENTA";
+
+export interface MarketplaceProviderItem {
+  id: string;
+  category: MarketplaceServiceCategory;
+  name: string;
+  leadPartner: string;
+  corridor: string;
+  specialty: string;
+  rating: number;
+  reviewsCount: number;
+  referralCommissionPct: number;
+  averageServiceFeeUsd: number;
+  slaResponse: string;
+  tier: "Partner Destacado" | "Proveedor Certificado" | "Verificado";
+  phone: string;
+  deliverables: string[];
+}
+
+export interface MarketplaceReferralRecord {
+  id: string;
+  providerId: string;
+  providerName: string;
+  category: MarketplaceServiceCategory;
+  clientName: string;
+  propertyName: string;
+  estimatedServiceUsd: number;
+  referralCommissionUsd: number;
+  status: "En Proceso" | "Cotizado" | "Comisión Liquidada";
+  createdAtLabel: string;
+}
 
 export interface PhotoPreset {
   id: string;

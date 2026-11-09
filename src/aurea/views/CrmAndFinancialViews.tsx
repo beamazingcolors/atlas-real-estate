@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  AiSpecializedAgentKey,
   AureaProperty,
   ClientSegmentTag,
   CrmProspect,
@@ -1032,90 +1033,256 @@ export const FinancialCalculatorView: React.FC<FinancialCalculatorViewProps> = (
 };
 
 /* ============================================================================
- * G. ATLAS COPILOT (IA COMERCIAL INMOBILIARIA)
+ * MÓDULO 04 · ATLAS AI (AÑO 2 & AÑO 5)
+ * - 4 Agentes IA Especializados: Ventas, Inversiones, Legal y Postventa
+ * - 9 Funciones Oficiales: Buscar propiedades por lenguaje natural, comparar
+ *   desarrollos y zonas, calcular ROI y plusvalía, recomendar inversiones,
+ *   crear fichas técnicas y presentaciones, redactar contratos y propuestas,
+ *   clasificar leads, resumir conversaciones y asistente para cierres de venta.
+ * - Motor de Matching Automático Cliente ↔ Propiedad + IA Predictiva Plusvalía
  * ========================================================================== */
 
 interface CopilotMessage {
   id: string;
   role: "assistant" | "user";
+  agentKey?: AiSpecializedAgentKey;
   title?: string;
   text: string;
   timestamp: string;
 }
 
+const SPECIALIZED_AI_AGENTS: {
+  key: AiSpecializedAgentKey;
+  name: string;
+  subtitle: string;
+  focus: string;
+}[] = [
+  {
+    key: "VENTAS",
+    name: "Agente IA de Ventas",
+    subtitle: "Clasificación de Leads, Resumen de Chats & Cierre Comercial",
+    focus:
+      "Clasifica prospectos por intención de compra, resume conversaciones de WhatsApp/correo, rebate objeciones y estructura estrategias de cierre.",
+  },
+  {
+    key: "INVERSIONES",
+    name: "Agente IA de Inversiones",
+    subtitle: "Búsqueda Natural, Comparativa de Zonas, ROI & Plusvalía Predictiva",
+    focus:
+      "Busca unidades por lenguaje natural, compara desarrollos y corredores, calcula Cap Rate neto y proyecta plusvalía a 3 y 5 años.",
+  },
+  {
+    key: "LEGAL",
+    name: "Agente IA Legal",
+    subtitle: "Redacción de Contratos, Propuestas, Fideicomiso SRE & NOM-247",
+    focus:
+      "Redacta Cartas Oferta (LOI), cláusulas de promesa de compraventa, checklists para extranjeros en Zona Restringida y cálculo de ISAI/ISR.",
+  },
+  {
+    key: "POSTVENTA",
+    name: "Agente IA de Postventa",
+    subtitle: "Entregas, Garantías, Interiorismo & Administración de Rentas",
+    focus:
+      "Coordina actas de recepción física, pólizas de vicios ocultos, conexión con interiorismo llave en mano y alta en administración de rentas.",
+  },
+];
+
+const NINE_ATLAS_AI_FUNCTIONS: {
+  id: string;
+  number: string;
+  label: string;
+  agent: AiSpecializedAgentKey;
+  prompt: string;
+  responseTitle: string;
+  responseText: string;
+}[] = [
+  {
+    id: "fn-1",
+    number: "01",
+    label: "Buscar propiedades por lenguaje natural",
+    agent: "INVERSIONES",
+    prompt:
+      "Buscar propiedades por lenguaje natural: 'Quiero un departamento o villa en Cancún con vista al agua, mínimo 2 recámaras, entrega con alto descuento de preventa y ROI mayor al 12%'",
+    responseTitle: "Búsqueda Semántica en Lenguaje Natural · Atlas AI",
+    responseText:
+      "He analizado las 6 carteras sincronizadas en Google Drive y encontré 3 coincidencias exactas:\n1) **Nautica Residences by Naúma (Unidad T1-806 · Prototipo Medium 3B)**: 152.94 m², 3 recámaras, vista directa a Laguna Nichupté y Zona Hotelera, ROI estimado de 13.8% anual y hasta 10% de descuento en plan 90/10.\n2) **The Villas Collection by Nautica (Villa Elara · V2)**: 272.00 m² en 2 niveles, 3 recámaras + cuarto de servicio, acceso a Naúma Beach Club y ROI de 13.2%.\n3) **Isla Blanca Residences — Losantos Huayacán**: Residencias de 3 recámaras con doble filtro de seguridad, casa club y 10% de descuento en pago de contado.",
+  },
+  {
+    id: "fn-2",
+    number: "02",
+    label: "Comparar desarrollos y zonas",
+    agent: "INVERSIONES",
+    prompt:
+      "Comparar desarrollos y zonas: Blvd. Colosio / Laguna Nichupté vs. Av. Huayacán vs. Playa del Carmen",
+    responseTitle: "Comparativa Multidimensional de Desarrollos y Corredores",
+    responseText:
+      "• **Corredor Laguna Nichupté / Zona Hotelera (Nautica Residences & The Villas)**: Mayor apreciación patrimonial (+58% a 5 años), vistas garantizadas al agua, +50 amenidades tipo resort y club de playa propio. Ideal para perfil patrimonial y renta vacacional premium.\n• **Corredor Av. Huayacán (Isla Blanca & Hodela Apartments)**: Mayor absorción residencial de largo plazo, ticket de entrada desde $3.85M MXN ($191K USD) y excelente relación precio/m².\n• **Corredor Playa del Carmen Centro-Mar (Prana Towers)**: Enfoque 100% flujo inmediato por renta corta (ocupación >76% anual) con unidades estudio y penthouses llave en mano.",
+  },
+  {
+    id: "fn-3",
+    number: "03",
+    label: "Calcular ROI y plusvalía",
+    agent: "INVERSIONES",
+    prompt:
+      "Calcular ROI neto, flujo de caja y plusvalía predictiva a 5 años para Nautica Residences",
+    responseTitle: "Cálculo de ROI Neto & Modelo Predictivo de Plusvalía (Año 5)",
+    responseText:
+      "• **Precio Lista Base (Unidad Tipo M3B)**: $9,550,000 MXN (~$473,945 USD).\n• **Con Esquema 50/50 (5% Descuento)**: $9,072,500 MXN (Ahorro inmediato de $477,500 MXN).\n• **Cap Rate Neto Estimado**: 13.8% anual considerando ocupación del 74% y tarifa promedio (ADR) de $385 USD/noche.\n• **IA Predictiva de Plusvalía a 5 Años**: +58.4% impulsada por el Puente Vehicular Nichupté y la consolidación del corredor Colosio-Laguna.",
+  },
+  {
+    id: "fn-4",
+    number: "04",
+    label: "Recomendar inversiones",
+    agent: "INVERSIONES",
+    prompt:
+      "Recomendar tesis de inversión óptima para un portafolio de $950,000 USD diversificado",
+    responseTitle: "Recomendación de Portafolio Inmobiliario Diversificado",
+    responseText:
+      "Para un capital de $950,000 USD recomendamos una estrategia **Core + Yield**:\n• **Activo 1 (60% del Capital · Plusvalía & Trofeo)**: 1 departamento Prototipo Medium u Ocean View en **Nautica Residences by Naúma** bajo esquema 50/50 con 5% de descuento.\n• **Activo 2 (40% del Capital · Flujo Vacacional Inmediato)**: 2 unidades en **Prana Towers Playa del Carmen** o **Hodela Apartments** para generar flujo de caja líquido desde el primer año mientras madura la plusvalía de preventa.",
+  },
+  {
+    id: "fn-5",
+    number: "05",
+    label: "Crear fichas técnicas y presentaciones",
+    agent: "VENTAS",
+    prompt:
+      "Crear ficha técnica ejecutiva y resumen de presentación para enviar a un comité familiar",
+    responseTitle: "Ficha Técnica Ejecutiva Lista para Presentación",
+    responseText:
+      "**RESUMEN EJECUTIVO — NAUTICA RESIDENCES BY NAÚMA**\n• **Ubicación**: Blvd. Luis Donaldo Colosio, frente a Laguna Nichupté, Cancún.\n• **Arquitectura**: 2 Torres de 20 niveles con más de 50 amenidades + Naúma Beach Club en Zona Hotelera.\n• **Tipologías**: 1, 2 y 3 Recámaras + Penthouses (71 m² a 261 m²).\n• **Planes de Pago**: 30/70 (Lista), 30/20/50 (-3%), 50/50 (-5%), 70/30 (-7%) y 90/10 (-10%).\n• **Respaldo Documental**: Brochures ES/EN, plantas ambientadas y lista de precios verificada en el Centro Documental Google Drive.",
+  },
+  {
+    id: "fn-6",
+    number: "06",
+    label: "Redactar contratos y propuestas",
+    agent: "LEGAL",
+    prompt:
+      "Redactar borrador de Carta Oferta (LOI) y cláusulas de reserva bajo NOM-247-SE-2021",
+    responseTitle: "Borrador de Carta Oferta & Cláusulas Protectoras NOM-247",
+    responseText:
+      "**CARTA DE INTENCIÓN DE COMPRA (LOI) — PROYECTO ATLAS**\n1. **Objeto**: Reserva formal de la unidad seleccionada sujeta a congelamiento de precio de lista vigente.\n2. **Esquema de Liquidación**: Depósito de apartado reembolsable por 15 días naturales en cuenta concentradora fiduciaria; firma de Contrato de Promesa conforme a la NOM-247-SE-2021.\n3. **Garantías**: Entrega de planos arquitectónicos acotados, memoria descriptiva de acabados y póliza de vicios ocultos por 5 años en estructura.",
+  },
+  {
+    id: "fn-7",
+    number: "07",
+    label: "Clasificar leads",
+    agent: "VENTAS",
+    prompt:
+      "Clasificar automáticamente los prospectos actuales del CRM según probabilidad de cierre y capacidad patrimonial",
+    responseTitle: "Clasificación Inteligente de Leads (Lead Scoring IA)",
+    responseText:
+      "• **Prioridad A (Cierre Inminente · Score 94/100)**: *Alejandro Vega (Family Office Monterrey)* — Presupuesto validado, etapa Negociación de Oferta en Nautica Residences, solicita esquema con descuento.\n• **Prioridad A (Recorrido Confirmado · Score 89/100)**: *Marcus Vance (Vance Capital LLC)* — Comprador extranjero en efectivo para The Villas Collection, requiere apertura de Fideicomiso SRE.\n• **Prioridad B (Calificación en Curso · Score 78/100)**: *Sofía Elizondo* — Interesada en Isla Blanca Residences, pendiente envío de comparativa de planes de pago.",
+  },
+  {
+    id: "fn-8",
+    number: "08",
+    label: "Resumir conversaciones",
+    agent: "VENTAS",
+    prompt:
+      "Resumir el historial de conversación de WhatsApp y correo con el inversionista y extraer siguientes pasos",
+    responseTitle: "Resumen Ejecutivo de Conversación Omnicanal",
+    responseText:
+      "**Síntesis de Hilo (WhatsApp + Correo)**:\n• El cliente confirmó preferencia por piso alto (nivel 11 o superior) con orientación hacia Laguna Nichupté y atardecer.\n• Solicitó comparar el ahorro entre el plan **50/50 (5% desc.)** y **70/30 (7% desc.)**.\n• **Siguientes pasos accionables**: 1) Enviar cotización PDF desde el Dossier de Nautica Residences; 2) Agendar videollamada con Notaría No. 62 del Marketplace; 3) Bloquear unidad T1-1501 por 72 horas.",
+  },
+  {
+    id: "fn-9",
+    number: "09",
+    label: "Asistente para cierres de venta",
+    agent: "POSTVENTA",
+    prompt:
+      "Dame los argumentos clave de cierre y plan postventa llave en mano para un inversionista indeciso",
+    responseTitle: "Estrategia de Cierre Comercial & Plan Postventa Turnkey",
+    responseText:
+      "**3 Argumentos Definitivos de Cierre + Ruta Postventa**:\n1) **Ganancia de Capital desde la Firma**: Al elegir el esquema 70/30 o 90/10, el inversionista captura entre 7% y 10% de descuento directo antes de la plusvalía constructiva.\n2) **Solución Llave en Mano en el Marketplace**: Conectamos de inmediato con *Casa Naúma Interiorismo* para amueblado turnkey y con *Sovereign Hospitality* para administrar las rentas vacacionales sin que el propietario tenga que operar el inmueble.\n3) **Certeza Jurídica Total**: Expediente de Google Drive 100% auditado y firma electrónica disponible hoy mismo.",
+  },
+];
+
 const INITIAL_COPILOT_MESSAGES: CopilotMessage[] = [
   {
     id: "cop-welcome",
     role: "assistant",
-    title: "Atlas Copilot · Proyecto Atlas Legal & Fiscal Intelligence",
-    text: "Bienvenido al motor jurídico-comercial de Proyecto Atlas (Real Estate Platform). Estoy entrenado en estructuración de Fideicomisos en Zona Restringida (Art. 27 Constitucional), cálculo de gastos de escrituración en Quintana Roo, normativas fiscales (ISR, IVA, retenciones a residentes en el extranjero) y argumentos de cierre para los 14 desarrollos en cartera.",
+    agentKey: "INVERSIONES",
+    title: "Atlas AI · Ecosistema de 4 Agentes Especializados & 9 Funciones",
+    text: "Bienvenido a **Atlas AI (Módulo 04 · Plan Estratégico Año 2 y Año 5)**. Selecciona uno de los **4 Agentes IA Especializados** (Ventas, Inversiones, Legal o Postventa), ejecuta cualquiera de las **9 funciones oficiales** con un clic o utiliza el **Motor de Matching Automático Cliente ↔ Propiedad**.",
     timestamp: "09:00 HRS",
   },
 ];
 
-const KNOWLEDGE_TOPICS = [
-  {
-    id: "fideicomiso",
-    label: "Fideicomiso Zona Restringida (Extranjeros)",
-    question:
-      "¿Cómo funciona el Fideicomiso Bancario en Zona Restringida para un comprador extranjero en Cancún?",
-    answer:
-      "Conforme al Artículo 27 Constitucional y la Ley de Inversión Extranjera, la franja de 50 km de playa ('Zona Restringida') se adquiere mediante un **Fideicomiso Traslativo de Dominio** con vigencia de 50 años renovables. El banco fiduciario (ej. Actinver, Monex, Banorte) detenta la titularidad registral mientras el inversionista extranjero (Fideicomisario) conserva el 100% de los derechos de uso, goce, arrendamiento, herencia libre de juicio sucesorio y venta con plusvalía. El permiso SRE y apertura tienen un costo promedio de $2,200 a $2,800 USD y una anualidad fiduciaria de ~$550 USD.",
-  },
-  {
-    id: "escrituracion",
-    label: "Costos de Escrituración y Cierre Notarial",
-    question:
-      "¿Cuál es el desglose de gastos de escrituración e ISAI en Cancún y Riviera Maya?",
-    answer:
-      "En el municipio de Benito Juárez (Cancún) y Solidaridad (Playa del Carmen), los costos de cierre notarial oscilan entre el **5.5% y el 7.0%** del valor de operación: incluye el Impuesto Sobre Adquisición de Inmuebles (ISAI ~3%), derechos de Registro Público de la Propiedad (~0.8%), certificados de libertad de gravamen y no adeudo predial, más honorarios de Notario Público y avalúo catastral.",
-  },
-  {
-    id: "fiscal",
-    label: "Normativa Fiscal (ISR, IVA y Retenciones)",
-    question:
-      "¿Qué impuestos aplican sobre rentas vacacionales y enajenación (ISR / IVA / Retenciones)?",
-    answer:
-      "1) **Adquisición Habitacional**: La compraventa de casa habitación está exenta de IVA (Art. 9 LIVA). Si es penthouse con componente comercial/hotelero amueblado, puede desglosarse el equipamiento.\n2) **Ingresos por Arrendamiento**: Para residentes en el extranjero sin establecimiento permanente en México, la retención definitiva de ISR es del **25% sobre el ingreso bruto**, o bien pueden optar por constituir una SAPI de CV mexicana o fideicomiso empresarial para tributar sobre utilidad neta (deduciendo mantenimiento, predial, depreciación del 5% anual y comisión de administración).\n3) **ISR por Enajenación (Venta futura)**: 35% sobre la ganancia neta (con derecho a deducir costo comprobado de adquisición actualizado por inflación, mejoras y gastos notariales) o 25% sobre el valor total sin deducciones.",
-  },
-  {
-    id: "contratos",
-    label: "Blindaje de Contratos de Preventa (NOM-247)",
-    question:
-      "¿Qué cláusulas protegen al inversionista en contratos de preventa bajo la NOM-247-SE-2021?",
-    answer:
-      "Todos los desarrollos auditados en Proyecto Atlas cumplen con la **NOM-247-SE-2021**: cuentan con Licencia de Construcción vigente, Fideicomiso Maestro de Administración, póliza de garantía por vicios ocultos (5 años en estructura, 3 años en impermeabilización) y cláusula de penalización simétrica en caso de demora en la fecha de entrega física.",
-  },
-];
-
 export const AtlasCopilotView: React.FC = () => {
+  const [activeAgent, setActiveAgent] =
+    useState<AiSpecializedAgentKey>("INVERSIONES");
   const [messages, setMessages] = usePersistentState<CopilotMessage[]>(
-    "proyecto_atlas_copilot_history_v2",
+    "proyecto_atlas_copilot_history_v3",
     INITIAL_COPILOT_MESSAGES
   );
   const [inputQuery, setInputQuery] = useState("");
+  const [selectedInvestorProfile, setSelectedInvestorProfile] = useState<
+    "RENDIMIENTO_VACACIONAL" | "PATRIMONIAL_TROFEO" | "PREVENTA_DESCUENTO"
+  >("PATRIMONIAL_TROFEO");
 
-  const generateAdvisorResponse = (queryText: string) => {
-    const q = queryText.toLowerCase();
-    if (q.includes("fideicomiso") || q.includes("extranjero") || q.includes("sre")) {
-      return KNOWLEDGE_TOPICS[0].answer;
+  const matchingRecommendations = useMemo(() => {
+    if (selectedInvestorProfile === "PATRIMONIAL_TROFEO") {
+      return [
+        {
+          name: "Nautica Residences by Naúma (Torres 1 y 2)",
+          matchPct: 98,
+          zone: "Cancún · Laguna Nichupté",
+          predictedAppreciation5Y: "+58.4%",
+          reason:
+            "Vista frontal a Laguna Nichupté y Mar Caribe, +50 amenidades, Club de Playa propio y alta liquidez patrimonial.",
+        },
+        {
+          name: "The Villas Collection by Nautica",
+          matchPct: 95,
+          zone: "Cancún · Blvd. Colosio",
+          predictedAppreciation5Y: "+55.0%",
+          reason:
+            "Baja densidad (solo 18 villas de 246 a 312 m²), privacidad absoluta de 2 niveles y acceso completo al ecosistema Naúma.",
+        },
+      ];
     }
-    if (q.includes("escritura") || q.includes("notari") || q.includes("isai")) {
-      return KNOWLEDGE_TOPICS[1].answer;
+    if (selectedInvestorProfile === "RENDIMIENTO_VACACIONAL") {
+      return [
+        {
+          name: "Prana Towers — Playa del Carmen",
+          matchPct: 97,
+          zone: "Playa del Carmen",
+          predictedAppreciation5Y: "+49.2%",
+          reason:
+            "Tipologías estudio y penthouses llave en mano con ocupación vacacional proyectada superior al 76% anual.",
+        },
+        {
+          name: "Nautica Residences (Prototipo Small / Medium)",
+          matchPct: 93,
+          zone: "Cancún · Laguna Nichupté",
+          predictedAppreciation5Y: "+58.4%",
+          reason:
+            "Alta demanda de estancias ejecutivas y vacacionales por su cercanía a Zona Hotelera y Aeropuerto Internacional.",
+        },
+      ];
     }
-    if (q.includes("isr") || q.includes("iva") || q.includes("impuesto") || q.includes("retenci")) {
-      return KNOWLEDGE_TOPICS[2].answer;
-    }
-    if (q.includes("contrato") || q.includes("preventa") || q.includes("nom")) {
-      return KNOWLEDGE_TOPICS[3].answer;
-    }
-    return `Dictamen Ejecutivo Proyecto Atlas para "${queryText}": Para operaciones en Puerto Cancún y Zona Hotelera recomendamos estructurar la oferta mediante Carta de Intención (LOI) con depósito en cuenta concentradora fiduciaria (Escrow), asegurando bloqueo de unidad por 10 días hábiles mientras nuestro comité legal valida el expediente KYC/AML, régimen de condominio y corrida de ISR/IVA aplicable al perfil del comprador.`;
-  };
+    return [
+      {
+        name: "Isla Blanca Residences — Losantos Huayacán",
+        matchPct: 96,
+        zone: "Av. Huayacán · Cancún",
+        predictedAppreciation5Y: "+54.8%",
+        reason:
+          "Hasta 10% de descuento en esquema 90/10 y fuerte crecimiento residencial en el polo Huayacán.",
+      },
+      {
+        name: "Nautica Residences (Esquema 90/10 · -10% Desc.)",
+        matchPct: 94,
+        zone: "Cancún · Laguna Nichupté",
+        predictedAppreciation5Y: "+58.4%",
+        reason:
+          "Descuento institucional del 10% con 90% de enganche y 10% contra entrega.",
+      },
+    ];
+  }, [selectedInvestorProfile]);
 
-  const handleSendQuestion = (textToSend: string) => {
-    const { clean } = sanitizeSovereignInput(textToSend);
-    if (!clean) return;
-
+  const handleRunFunction = (fnItem: (typeof NINE_ATLAS_AI_FUNCTIONS)[number]) => {
+    setActiveAgent(fnItem.agent);
     const nowLabel = new Date().toLocaleTimeString("es-MX", {
       hour: "2-digit",
       minute: "2-digit",
@@ -1124,6 +1291,44 @@ export const AtlasCopilotView: React.FC = () => {
     const userMsg: CopilotMessage = {
       id: `usr-${Date.now()}`,
       role: "user",
+      agentKey: fnItem.agent,
+      text: fnItem.prompt,
+      timestamp: `${nowLabel} HRS`,
+    };
+
+    const replyMsg: CopilotMessage = {
+      id: `ast-${Date.now() + 1}`,
+      role: "assistant",
+      agentKey: fnItem.agent,
+      title: fnItem.responseTitle,
+      text: fnItem.responseText,
+      timestamp: `${nowLabel} HRS`,
+    };
+
+    setMessages((prev) => [...prev, userMsg, replyMsg]);
+  };
+
+  const handleSendCustomQuery = (textToSend: string) => {
+    const { clean } = sanitizeSovereignInput(textToSend);
+    if (!clean) return;
+
+    const matchedFn = NINE_ATLAS_AI_FUNCTIONS.find((f) =>
+      clean.toLowerCase().includes(f.label.split(" ")[0].toLowerCase())
+    );
+
+    const nowLabel = new Date().toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const agentMeta =
+      SPECIALIZED_AI_AGENTS.find((a) => a.key === activeAgent) ??
+      SPECIALIZED_AI_AGENTS[0];
+
+    const userMsg: CopilotMessage = {
+      id: `usr-${Date.now()}`,
+      role: "user",
+      agentKey: activeAgent,
       text: clean,
       timestamp: `${nowLabel} HRS`,
     };
@@ -1131,8 +1336,11 @@ export const AtlasCopilotView: React.FC = () => {
     const replyMsg: CopilotMessage = {
       id: `ast-${Date.now() + 1}`,
       role: "assistant",
-      title: "Dictamen Jurídico-Patrimonial · Proyecto Atlas",
-      text: generateAdvisorResponse(clean),
+      agentKey: activeAgent,
+      title: `${agentMeta.name} · Dictamen Atlas AI`,
+      text:
+        matchedFn?.responseText ??
+        `Dictamen de **${agentMeta.name}** para "${clean}":\n1) **Análisis de Cartera**: En Nautica Residences, The Villas Collection, Isla Blanca, Hodela y Prana Towers contamos con disponibilidad verificada en Google Drive y descuentos de preventa del 3% al 10%.\n2) **Estructura Legal & Fiscal**: Operación protegida bajo NOM-247-SE-2021 y Fideicomiso SRE para extranjeros.\n3) **Acción Recomendada**: Generar Dossier con corrida financiera personalizada y conectar con Notaría o Administración de Rentas en el Marketplace.`,
       timestamp: `${nowLabel} HRS`,
     };
 
@@ -1141,105 +1349,234 @@ export const AtlasCopilotView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-xl border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)] lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <span className="font-['Outfit'] text-[11px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
-            MÓDULO G · INTELIGENCIA COMERCIAL & LEGAL
-          </span>
-          <h1 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight text-black">
-            Atlas Copilot (IA Comercial)
-          </h1>
-          <p className="mt-1 text-xs text-neutral-600">
-            Asistente especializado en Fideicomisos en Zona Restringida, escrituración notarial, ISR/IVA y amenidades de ultra lujo.
-          </p>
+    <div className="space-y-6 pb-10">
+      {/* Cabecera Atlas AI con los 4 Agentes Especializados (Año 5) */}
+      <div className="border border-[#091e3a] bg-[#091e3a] p-6 text-white sm:p-8">
+        <div className="flex flex-col justify-between gap-4 border-b border-white/15 pb-5 lg:flex-row lg:items-center">
+          <div>
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#00b4f5]">
+              MÓDULO 04 · ATLAS AI · 4 AGENTES ESPECIALIZADOS &amp; 9 FUNCIONES
+            </span>
+            <h1 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight sm:text-3xl">
+              Atlas AI — Inteligencia Artificial Comercial, Legal y Predictiva
+            </h1>
+            <p className="mt-1 text-xs text-slate-300">
+              Selecciona un Agente IA especializado o ejecuta cualquiera de las 9 funciones del Plan Estratégico con un solo clic.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMessages(INITIAL_COPILOT_MESSAGES)}
+            className="self-start border border-white/25 bg-white/5 px-3.5 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-white hover:text-[#091e3a]"
+          >
+            Reiniciar Consola IA
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMessages(INITIAL_COPILOT_MESSAGES)}
-          className="self-start rounded-lg border border-[#eaedf0] bg-[#f8f9fa] px-3 py-2 font-['Outfit'] text-xs font-medium text-neutral-600 hover:border-black hover:text-black"
-        >
-          Reiniciar Sesión IA
-        </button>
-      </div>
-
-      {/* Botones de consulta rápida */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {KNOWLEDGE_TOPICS.map((topic) => (
-          <button
-            key={topic.id}
-            type="button"
-            onClick={() => handleSendQuestion(topic.question)}
-            className="flex flex-col justify-between rounded-xl border border-[#eaedf0] bg-white p-4 text-left shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:border-[#755a34]"
-          >
-            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34]">
-              CONSULTA FRECUENTE
-            </span>
-            <span className="mt-1 font-['Outfit'] text-xs font-semibold text-black">
-              {topic.label}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Consola de conversación */}
-      <div className="rounded-xl border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
-        <div className="max-h-[420px] space-y-4 overflow-y-auto pr-2">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-3xl rounded-xl p-4 text-xs leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-black text-white"
-                    : "border border-[#eaedf0] bg-[#f8f9fa] text-neutral-800"
+        {/* Selector de los 4 Agentes IA Especializados */}
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {SPECIALIZED_AI_AGENTS.map((agent) => {
+            const active = activeAgent === agent.key;
+            return (
+              <button
+                key={agent.key}
+                type="button"
+                onClick={() => setActiveAgent(agent.key)}
+                className={`flex flex-col justify-between border p-4 text-left transition ${
+                  active
+                    ? "border-[#00b4f5] bg-white text-[#091e3a]"
+                    : "border-white/15 bg-white/5 text-white hover:bg-white/10"
                 }`}
               >
-                {msg.title && (
-                  <div className="mb-1.5 flex items-center justify-between border-b border-neutral-200/60 pb-1">
-                    <span className="font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-[#755a34]">
-                      {msg.title}
-                    </span>
-                    <span className="text-[10px] text-neutral-400">
-                      {msg.timestamp}
-                    </span>
-                  </div>
-                )}
-                <p className="whitespace-pre-line">{msg.text}</p>
-              </div>
-            </div>
-          ))}
+                <div>
+                  <span
+                    className={`font-['Outfit'] text-[9px] font-semibold uppercase tracking-[0.2em] ${
+                      active ? "text-[#0077cc]" : "text-[#00b4f5]"
+                    }`}
+                  >
+                    AGENTE ESPECIALIZADO · AÑO 5
+                  </span>
+                  <h2 className="mt-1 font-['Outfit'] text-sm font-bold">
+                    {agent.name}
+                  </h2>
+                  <p
+                    className={`mt-1 text-[11px] leading-relaxed ${
+                      active ? "text-neutral-600" : "text-slate-300"
+                    }`}
+                  >
+                    {agent.focus}
+                  </p>
+                </div>
+                <span
+                  className={`mt-3 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider ${
+                    active ? "text-[#755a34]" : "text-[#faeedd]"
+                  }`}
+                >
+                  {active ? "Agente Activo ✓" : "Seleccionar Agente →"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Las 9 Funciones Oficiales de Atlas AI como Botones Ejecutables */}
+      <div className="border border-[#e2e6ec] bg-white p-6">
+        <div className="border-b border-[#eaedf0] pb-4">
+          <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#755a34]">
+            CAPACIDADES OFICIALES DEL PLAN ESTRATÉGICO
+          </span>
+          <h2 className="mt-1 font-['Outfit'] text-lg font-semibold text-[#091e3a]">
+            Las 9 Funciones de Atlas AI (Ejecución en 1 Clic)
+          </h2>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendQuestion(inputQuery);
-          }}
-          className="mt-5 flex gap-3 border-t border-[#eaedf0] pt-4"
-        >
-          <input
-            type="text"
-            value={inputQuery}
-            onChange={(e) => setInputQuery(e.target.value)}
-            placeholder="Pregunta sobre fideicomisos, retenciones ISR para extranjeros, contratos de preventa o amenidades..."
-            className="flex-1 rounded-lg border border-[#eaedf0] bg-[#f8f9fa] px-4 py-2.5 text-xs text-black focus:border-black focus:bg-white focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-black px-5 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#755a34]"
+        <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {NINE_ATLAS_AI_FUNCTIONS.map((fn) => (
+            <button
+              key={fn.id}
+              type="button"
+              onClick={() => handleRunFunction(fn)}
+              className="group flex items-center justify-between border border-[#eaedf0] bg-[#f8f9fa] p-3.5 text-left transition hover:border-[#091e3a] hover:bg-white"
+            >
+              <div>
+                <span className="font-['Outfit'] text-[9px] font-semibold uppercase tracking-wider text-[#0077cc]">
+                  FUNCIÓN {fn.number} · AGENTE {fn.agent}
+                </span>
+                <div className="mt-0.5 font-['Outfit'] text-xs font-semibold text-[#091e3a]">
+                  {fn.label}
+                </div>
+              </div>
+              <span className="font-['Outfit'] text-xs font-bold text-[#755a34] transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Motor de Matching Automático Cliente ↔ Propiedad & IA Predictiva de Plusvalía (Año 5) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="border border-[#e2e6ec] bg-white p-6 lg:col-span-5">
+          <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#004044]">
+            AÑO 5 · MATCHING AUTOMÁTICO &amp; IA PREDICTIVA
+          </span>
+          <h3 className="mt-1 font-['Outfit'] text-base font-semibold text-[#091e3a]">
+            Emparejamiento Cliente ↔ Propiedad &amp; Plusvalía a 5 Años
+          </h3>
+          <p className="mt-1 text-xs text-neutral-500">
+            Selecciona el objetivo del cliente para calcular el Match Score automático y la plusvalía predictiva.
+          </p>
+
+          <div className="mt-4 flex flex-col gap-2">
+            {[
+              {
+                id: "PATRIMONIAL_TROFEO" as const,
+                label: "Perfil 1: Preservación Patrimonial & Vista al Agua",
+              },
+              {
+                id: "RENDIMIENTO_VACACIONAL" as const,
+                label: "Perfil 2: Maximización de Flujo por Renta Vacacional",
+              },
+              {
+                id: "PREVENTA_DESCUENTO" as const,
+                label: "Perfil 3: Preventa con Alto Descuento de Entrada (10%)",
+              },
+            ].map((prof) => (
+              <button
+                key={prof.id}
+                type="button"
+                onClick={() => setSelectedInvestorProfile(prof.id)}
+                className={`border px-3.5 py-2.5 text-left font-['Outfit'] text-xs font-semibold transition ${
+                  selectedInvestorProfile === prof.id
+                    ? "border-[#091e3a] bg-[#091e3a] text-white"
+                    : "border-[#eaedf0] bg-[#f8f9fa] text-[#091e3a] hover:border-[#091e3a]"
+                }`}
+              >
+                {prof.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {matchingRecommendations.map((rec) => (
+              <div
+                key={rec.name}
+                className="border border-[#eaedf0] bg-[#f8f9fa] p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="bg-[#004044] px-2 py-0.5 font-['Outfit'] text-[10px] font-bold uppercase text-white">
+                    Match {rec.matchPct}%
+                  </span>
+                  <span className="font-['Outfit'] text-xs font-bold text-[#755a34]">
+                    Plusvalía 5 Años: {rec.predictedAppreciation5Y}
+                  </span>
+                </div>
+                <h4 className="mt-2 font-['Outfit'] text-sm font-semibold text-[#091e3a]">
+                  {rec.name}
+                </h4>
+                <p className="mt-1 text-xs text-neutral-600">{rec.reason}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Consola Conversacional Atlas AI */}
+        <div className="border border-[#e2e6ec] bg-white p-6 lg:col-span-7">
+          <div className="max-h-[420px] space-y-4 overflow-y-auto pr-2">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-2xl border p-4 text-xs leading-relaxed ${
+                    msg.role === "user"
+                      ? "border-[#091e3a] bg-[#091e3a] text-white"
+                      : "border-[#eaedf0] bg-[#f8f9fa] text-neutral-800"
+                  }`}
+                >
+                  {msg.title && (
+                    <div className="mb-1.5 flex items-center justify-between border-b border-neutral-200/60 pb-1">
+                      <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34]">
+                        {msg.title}
+                      </span>
+                      <span className="text-[10px] text-neutral-400">
+                        {msg.timestamp}
+                      </span>
+                    </div>
+                  )}
+                  <p className="whitespace-pre-line">{msg.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendCustomQuery(inputQuery);
+            }}
+            className="mt-5 flex gap-3 border-t border-[#eaedf0] pt-4"
           >
-            <span className="material-symbols-outlined text-[16px]">
-              auto_awesome
-            </span>
-            Consultar Copilot
-          </button>
-        </form>
+            <input
+              type="text"
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              placeholder="Escribe en lenguaje natural: buscar propiedad, calcular ROI, redactar contrato, resumir chat..."
+              className="flex-1 border border-[#eaedf0] bg-[#f8f9fa] px-4 py-2.5 text-xs text-black focus:border-[#091e3a] focus:bg-white focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 bg-[#091e3a] px-5 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
+            >
+              <span>Ejecutar Atlas AI</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

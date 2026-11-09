@@ -3,6 +3,9 @@ import {
   BrokerAgentMember,
   CurrencyCode,
   DriveAuditItem,
+  MarketplaceProviderItem,
+  MarketplaceReferralRecord,
+  MarketplaceServiceCategory,
   MembershipTier,
   SecurityAuditEvent,
   WhiteLabelConfig,
@@ -319,83 +322,571 @@ export const AgencySuiteView: React.FC<AgencySuiteViewProps> = ({
 };
 
 /* ============================================================================
- * DIRECTORIO INMOBILIARIO INSTITUCIONAL
+ * MÓDULO 03 · MARKETPLACE DE SERVICIOS INMOBILIARIOS (AÑO 3 & AÑO 5)
+ * Directorio y contratación de: Notarías, Brokers hipotecarios, Aseguradoras,
+ * Avalúos, Arquitectos, Interiorismo, Mudanzas y Administración de rentas.
+ * Incluye calificaciones verificadas y comisiones por referencia.
  * ========================================================================== */
 
-const DIRECTORY_ENTITIES = [
+const MARKETPLACE_CATEGORIES: MarketplaceServiceCategory[] = [
+  "Notarías",
+  "Brokers hipotecarios",
+  "Aseguradoras",
+  "Avalúos",
+  "Arquitectos",
+  "Interiorismo",
+  "Mudanzas",
+  "Administración de rentas",
+];
+
+const MARKETPLACE_PROVIDERS: MarketplaceProviderItem[] = [
   {
-    id: "dir-01",
-    category: "Notaría Pública Patrimonial",
-    name: "Notaría Pública No. 62 · Cancún / Quintana Roo",
-    contact: "Lic. Rodrigo Castellanos · Titular Fiduciario",
-    specialty: "Escrituración en Zona Restringida, Fideicomisos SRE y Apostillas",
+    id: "mp-notaria-62",
+    category: "Notarías",
+    name: "Notaría Pública No. 62 · Cancún & Riviera Maya",
+    leadPartner: "Lic. Rodrigo Castellanos · Notario Titular",
+    corridor: "Cancún · Puerto Cancún · Playa del Carmen",
+    specialty:
+      "Escrituración de preventas, Fideicomisos en Zona Restringida (SRE), poder notarial internacional y protocolo NOM-247.",
+    rating: 4.96,
+    reviewsCount: 184,
+    referralCommissionPct: 12,
+    averageServiceFeeUsd: 4800,
+    slaResponse: "Respuesta en < 2 hrs",
+    tier: "Partner Destacado",
     phone: "+52 (998) 884 9102",
+    deliverables: [
+      "Proyecto de Escritura / Fideicomiso SRE",
+      "Certificado de Libertad de Gravamen",
+      "Cálculo de ISAI e ISR Notarial",
+    ],
   },
   {
-    id: "dir-02",
-    category: "División Fiduciaria Bancaria",
-    name: "Banca Privada Actinver · Dirección Fiduciaria Sureste",
-    contact: "Mtra. Elena Valladares · VP Trusts & Estates",
-    specialty: "Apertura de Fideicomisos Extranjeros y Cuentas Escrow USD",
+    id: "mp-hipotecario-01",
+    category: "Brokers hipotecarios",
+    name: "Sovereign Capital Mortgage · Crédito Patrimonial & Cross-Border",
+    leadPartner: "Mtro. Adrián Mercader · Director Hipotecario",
+    corridor: "Nacional & Compradores USA / Canadá",
+    specialty:
+      "Créditos de liquidez, hipotecas en USD para extranjeros en playa y financiamiento puente para preventas.",
+    rating: 4.92,
+    reviewsCount: 146,
+    referralCommissionPct: 20,
+    averageServiceFeeUsd: 6200,
+    slaResponse: "Pre-aprobación en 24 hrs",
+    tier: "Partner Destacado",
     phone: "+52 (998) 210 4400",
+    deliverables: [
+      "Pre-calificación Bancaria Multi-Institución",
+      "Estructuración de Crédito en USD/MXN",
+      "Acompañamiento hasta Firma y Dispersión",
+    ],
   },
   {
-    id: "dir-03",
-    category: "Desarrollador Master",
-    name: "Sovereign Marina Developments · Puerto Cancún",
-    contact: "Ing. Mauricio Domenech · Director Comercial",
-    specialty: "Villas con Muelle Privado y Residencias Frente a Canal",
-    phone: "+52 (998) 315 8890",
+    id: "mp-aseguradora-01",
+    category: "Aseguradoras",
+    name: "Atlas Coastal Shield · Seguros de Propiedad & Huracanes",
+    leadPartner: "Ing. Valeria Montes · Suscripción Patrimonial",
+    corridor: "Caribe Mexicano & Nivel Nacional",
+    specialty:
+      "Pólizas todo riesgo hidrometeorológico (frente al mar y laguna), responsabilidad civil para rentas vacacionales y seguro de título.",
+    rating: 4.89,
+    reviewsCount: 112,
+    referralCommissionPct: 15,
+    averageServiceFeeUsd: 2900,
+    slaResponse: "Cotización en 30 min",
+    tier: "Proveedor Certificado",
+    phone: "+52 (998) 315 7710",
+    deliverables: [
+      "Póliza Todo Riesgo Hidrometeorológico",
+      "Seguro de Título de Propiedad (Title Insurance)",
+      "Cobertura de Contenidos y Renta Perdida",
+    ],
   },
   {
-    id: "dir-04",
-    category: "Despacho Fiscal Internacional",
-    name: "Chevez, Ruiz & Asociados · Práctica Inmobiliaria",
-    contact: "C.P.C. Hernán Solís · Socio Fiscal",
-    specialty: "Estructuración de ISR por Enajenación y Tratados de Doble Tributación",
-    phone: "+52 (55) 5257 7000",
+    id: "mp-avaluos-01",
+    category: "Avalúos",
+    name: "Valuación RICS & Peritos Certificados del Sureste",
+    leadPartner: "Arq. Perito Hernán Solís · MRICS / INDAABIN",
+    corridor: "Cancún · Huayacán · Riviera Maya",
+    specialty:
+      "Avalúos comerciales, bancarios, catastrales y fiscales (para deducción de mejoras en ISR por enajenación).",
+    rating: 4.94,
+    reviewsCount: 98,
+    referralCommissionPct: 14,
+    averageServiceFeeUsd: 1650,
+    slaResponse: "Dictamen en 48 hrs",
+    tier: "Proveedor Certificado",
+    phone: "+52 (998) 412 3309",
+    deliverables: [
+      "Avalúo Comercial Homologado",
+      "Avalúo de Mejoras para Efectos Fiscales",
+      "Estudio de Valor de Mercado y Absorción",
+    ],
+  },
+  {
+    id: "mp-arquitectos-01",
+    category: "Arquitectos",
+    name: "Taller de Arquitectura Costera & Adecuaciones Custom",
+    leadPartner: "Arq. Mateo Villarreal · Socio Director",
+    corridor: "Laguna Nichupté · Puerto Cancún · Huayacán",
+    specialty:
+      "Personalización de penthouses, integración de domótica KNX, pérgolas bioclimáticas, albercas en rooftop y muelles.",
+    rating: 4.95,
+    reviewsCount: 74,
+    referralCommissionPct: 10,
+    averageServiceFeeUsd: 14500,
+    slaResponse: "Anteproyecto en 5 días",
+    tier: "Partner Destacado",
+    phone: "+52 (998) 501 2290",
+    deliverables: [
+      "Proyecto Ejecutivo de Adecuación",
+      "Renders Fotorealistas de Personalización",
+      "Supervisión Técnica de Obra",
+    ],
+  },
+  {
+    id: "mp-interiorismo-01",
+    category: "Interiorismo",
+    name: "Casa Naúma & Atelier Turnkey Interior Design",
+    leadPartner: "Dis. Camila Arámburu · Directora Creativa",
+    corridor: "Nautica Residences · The Villas · Prana Towers",
+    specialty:
+      "Paquetes de amueblado llave en mano (Turnkey) en parota, travertino y lino orgánico optimizados para maximizar tarifa por noche (ADR).",
+    rating: 4.98,
+    reviewsCount: 163,
+    referralCommissionPct: 12,
+    averageServiceFeeUsd: 22000,
+    slaResponse: "Propuesta en 24 hrs",
+    tier: "Partner Destacado",
+    phone: "+52 (998) 892 1400",
+    deliverables: [
+      "Paquete de Mobiliario y Equipamiento Turnkey",
+      "Curaduría de Arte, Iluminación y Blancos",
+      "Instalación Completa Lista para Habitar o Rentar",
+    ],
+  },
+  {
+    id: "mp-mudanzas-01",
+    category: "Mudanzas",
+    name: "White-Glove Relocation & Fine Art Logistics",
+    leadPartner: "Lic. Esteban Cárdenas · Operaciones Internacionales",
+    corridor: "CDMX · Monterrey · EE. UU. → Caribe Mexicano",
+    specialty:
+      "Mudanzas residenciales de guante blanco, traslado climatizado de obras de arte, importación de menaje de casa y vehículos.",
+    rating: 4.88,
+    reviewsCount: 89,
+    referralCommissionPct: 10,
+    averageServiceFeeUsd: 4200,
+    slaResponse: "Inspección en 12 hrs",
+    tier: "Proveedor Certificado",
+    phone: "+52 (55) 5280 9910",
+    deliverables: [
+      "Embalaje de Guante Blanco y Seguro Total",
+      "Despacho Aduanal de Menaje para Extranjeros",
+      "Desempaque y Montaje en el Desarrollo",
+    ],
+  },
+  {
+    id: "mp-rentas-01",
+    category: "Administración de rentas",
+    name: "Sovereign Hospitality & Vacation Rental Management",
+    leadPartner: "Lic. Sofía Alarcón · Directora de Revenue",
+    corridor: "Zona Hotelera · Laguna Nichupté · Playa del Carmen",
+    specialty:
+      "Operación integral de rentas vacacionales y estancias largas con pricing dinámico, concierge 24/7, mantenimiento preventivo y reporte mensual.",
+    rating: 4.97,
+    reviewsCount: 215,
+    referralCommissionPct: 18,
+    averageServiceFeeUsd: 5400,
+    slaResponse: "Onboarding en 24 hrs",
+    tier: "Partner Destacado",
+    phone: "+52 (998) 688 4500",
+    deliverables: [
+      "Revenue Management Dinámico (Airbnb Luxe, Marriott Homes, Directo)",
+      "Mantenimiento Preventivo y Concierge al Huésped",
+      "Estado de Cuenta Mensual y Liquidación Fiscal",
+    ],
   },
 ];
 
-export const DirectoryView: React.FC = () => {
+const INITIAL_REFERRAL_RECORDS: MarketplaceReferralRecord[] = [
+  {
+    id: "ref-101",
+    providerId: "mp-interiorismo-01",
+    providerName: "Casa Naúma & Atelier Turnkey Interior Design",
+    category: "Interiorismo",
+    clientName: "Alejandro Vega · Family Office Monterrey",
+    propertyName: "Nautica Residences (Unidad T1-1501)",
+    estimatedServiceUsd: 22000,
+    referralCommissionUsd: 2640,
+    status: "Comisión Liquidada",
+    createdAtLabel: "Hace 2 días",
+  },
+  {
+    id: "ref-102",
+    providerId: "mp-notaria-62",
+    providerName: "Notaría Pública No. 62 · Cancún & Riviera Maya",
+    category: "Notarías",
+    clientName: "Marcus Vance · Vance Capital LLC",
+    propertyName: "The Villas Collection (Villa Elara)",
+    estimatedServiceUsd: 4800,
+    referralCommissionUsd: 576,
+    status: "En Proceso",
+    createdAtLabel: "Hoy · 11:30 HRS",
+  },
+];
+
+interface DirectoryViewProps {
+  currency?: CurrencyCode;
+}
+
+export const DirectoryView: React.FC<DirectoryViewProps> = ({
+  currency = "USD",
+}) => {
+  const [selectedCategory, setSelectedCategory] = useState<
+    MarketplaceServiceCategory | "TODAS"
+  >("TODAS");
+  const [referrals, setReferrals] = usePersistentState<
+    MarketplaceReferralRecord[]
+  >("proyecto_atlas_marketplace_referrals_v3", INITIAL_REFERRAL_RECORDS);
+  const [clientNameInput, setClientNameInput] = useState(
+    "Inversionista Patrimonial · Cierre Activo"
+  );
+  const [propertyNameInput, setPropertyNameInput] = useState(
+    "Nautica Residences by Naúma"
+  );
+  const [lastBookedBanner, setLastBookedBanner] = useState<string | null>(null);
+
+  const filteredProviders =
+    selectedCategory === "TODAS"
+      ? MARKETPLACE_PROVIDERS
+      : MARKETPLACE_PROVIDERS.filter((p) => p.category === selectedCategory);
+
+  const totalReferralCommissionUsd = referrals.reduce(
+    (acc, r) => acc + r.referralCommissionUsd,
+    0
+  );
+
+  const handleCreateReferral = (provider: MarketplaceProviderItem) => {
+    const commissionUsd = Math.round(
+      provider.averageServiceFeeUsd * (provider.referralCommissionPct / 100)
+    );
+    const nextRecord: MarketplaceReferralRecord = {
+      id: `ref-${Date.now()}`,
+      providerId: provider.id,
+      providerName: provider.name,
+      category: provider.category,
+      clientName: clientNameInput.trim() || "Cliente Patrimonial",
+      propertyName: propertyNameInput.trim() || "Nautica Residences by Naúma",
+      estimatedServiceUsd: provider.averageServiceFeeUsd,
+      referralCommissionUsd: commissionUsd,
+      status: "Cotizado",
+      createdAtLabel: "Justo ahora",
+    };
+    setReferrals((prev) => [nextRecord, ...prev]);
+    setLastBookedBanner(
+      `Referencia registrada con ${provider.name} (${provider.category}). Comisión por referencia proyectada: ${formatSovereignCurrency(commissionUsd, currency)}.`
+    );
+    setTimeout(() => setLastBookedBanner(null), 4500);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-[#eaedf0] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
-        <span className="font-['Outfit'] text-[11px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
-          ECOSISTEMA JURÍDICO Y FIDUCIARIO
-        </span>
-        <h1 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight text-black">
-          Directorio Inmobiliario & Aliados Soberanos
-        </h1>
-        <p className="mt-1 text-xs text-neutral-600">
-          Notarías certificadas, bancos fiduciarios, desarrolladores verificados y firmas fiscales para cierres de alto patrimonio.
-        </p>
+    <div className="space-y-7 pb-10">
+      {/* Cabecera del Marketplace (Módulo 03 / Año 3 & Año 5) */}
+      <div className="border border-[#091e3a] bg-[#091e3a] p-7 text-white">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div className="max-w-3xl">
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#00b4f5]">
+              MÓDULO 03 · MARKETPLACE DE SERVICIOS INMOBILIARIOS (AÑO 3 &amp; AÑO 5)
+            </span>
+            <h1 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight sm:text-3xl">
+              Marketplace de Proveedores Certificados &amp; Comisiones por Referencia
+            </h1>
+            <p className="mt-2 text-xs leading-relaxed text-slate-300">
+              Conecta a compradores y asesores con proveedores verificados en las 8 categorías clave del ecosistema inmobiliario. Modelo de ingresos integrado: suscripciones, comisiones por referencia, publicidad destacada y servicios premium.
+            </p>
+          </div>
+
+          <div className="border border-white/20 bg-white/10 px-5 py-3">
+            <span className="block font-['Outfit'] text-[9px] uppercase tracking-[0.2em] text-[#faeedd]">
+              COMISIONES POR REFERENCIA GENERADAS
+            </span>
+            <span className="mt-0.5 block font-['Outfit'] text-xl font-bold text-white">
+              {formatSovereignCurrency(totalReferralCommissionUsd, currency)}
+            </span>
+            <span className="text-[11px] text-slate-300">
+              {referrals.length} servicios contratados / referidos
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Fuentes del Modelo de Ingresos del Marketplace */}
+        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/15 pt-5 sm:grid-cols-4">
+          {[
+            {
+              label: "1. Suscripciones",
+              desc: "Membresía mensual de proveedores certificados en las 8 verticales.",
+            },
+            {
+              label: "2. Comisiones por Referencia",
+              desc: "Fee del 10% al 20% por cada servicio contratado desde la plataforma.",
+            },
+            {
+              label: "3. Publicidad Destacada",
+              desc: "Posicionamiento preferente como Partner Destacado por corredor.",
+            },
+            {
+              label: "4. Servicios Premium",
+              desc: "Paquetes llave en mano (Turnkey), concierge legal y fast-track notarial.",
+            },
+          ].map((m) => (
+            <div
+              key={m.label}
+              className="border border-white/10 bg-white/5 p-3 text-xs"
+            >
+              <div className="font-['Outfit'] font-semibold text-[#00b4f5]">
+                {m.label}
+              </div>
+              <p className="mt-1 text-[11px] text-slate-300">{m.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {DIRECTORY_ENTITIES.map((item) => (
-          <div
-            key={item.id}
-            className="rounded-xl border border-[#eaedf0] bg-white p-5 shadow-[0_1px_8px_rgba(0,0,0,0.03)]"
-          >
-            <span className="inline-block rounded bg-[#faeedd] px-2.5 py-0.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34]">
-              {item.category}
+      {/* Filtro Interactivo por las 8 Categorías Oficiales del Plan Estratégico */}
+      <div className="border border-[#e2e6ec] bg-white p-5">
+        <div className="flex flex-col justify-between gap-3 border-b border-[#eaedf0] pb-4 sm:flex-row sm:items-center">
+          <div>
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
+              8 VERTICALES DEL MARKETPLACE
             </span>
-            <h3 className="mt-2 font-['Outfit'] text-base font-semibold text-black">
-              {item.name}
-            </h3>
-            <p className="mt-1 text-xs font-medium text-neutral-700">
-              {item.contact}
-            </p>
-            <p className="mt-2 text-xs text-neutral-500">{item.specialty}</p>
-            <div className="mt-4 flex items-center justify-between border-t border-[#eaedf0] pt-3 text-xs">
-              <span className="font-mono text-neutral-600">{item.phone}</span>
-              <span className="font-['Outfit'] text-[11px] font-semibold text-[#004044]">
-                Acreditación Vigente ✓
-              </span>
-            </div>
+            <h2 className="font-['Outfit'] text-base font-semibold text-[#091e3a]">
+              Filtrar Directorio y Contratación por Especialidad
+            </h2>
           </div>
-        ))}
+
+          <div className="flex flex-wrap gap-2 text-xs">
+            <input
+              type="text"
+              value={clientNameInput}
+              onChange={(e) => setClientNameInput(e.target.value)}
+              placeholder="Cliente a referir..."
+              className="border border-[#eaedf0] bg-[#f8f9fa] px-3 py-1.5 text-xs text-black"
+            />
+            <input
+              type="text"
+              value={propertyNameInput}
+              onChange={(e) => setPropertyNameInput(e.target.value)}
+              placeholder="Desarrollo / Unidad..."
+              className="border border-[#eaedf0] bg-[#f8f9fa] px-3 py-1.5 text-xs text-black"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory("TODAS")}
+            className={`px-3.5 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider transition ${
+              selectedCategory === "TODAS"
+                ? "bg-[#091e3a] text-white"
+                : "border border-[#eaedf0] bg-[#f8f9fa] text-neutral-600 hover:border-[#091e3a]"
+            }`}
+          >
+            Todas las Categorías ({MARKETPLACE_PROVIDERS.length})
+          </button>
+          {MARKETPLACE_CATEGORIES.map((cat) => {
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3.5 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider transition ${
+                  active
+                    ? "bg-[#091e3a] text-white"
+                    : "border border-[#eaedf0] bg-[#f8f9fa] text-neutral-600 hover:border-[#091e3a]"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {lastBookedBanner && (
+        <div className="border-l-4 border-emerald-600 bg-emerald-50 p-4 text-xs font-medium text-emerald-900">
+          {lastBookedBanner}
+        </div>
+      )}
+
+      {/* Tarjetas de Proveedores Certificados */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {filteredProviders.map((provider) => {
+          const estimatedCommissionUsd = Math.round(
+            provider.averageServiceFeeUsd *
+              (provider.referralCommissionPct / 100)
+          );
+          return (
+            <div
+              key={provider.id}
+              className="flex flex-col justify-between border border-[#e2e6ec] bg-white p-6 shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition hover:border-[#091e3a]"
+            >
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#eaedf0] pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#091e3a] px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white">
+                      {provider.category}
+                    </span>
+                    <span className="border border-[#755a34]/40 bg-[#faeedd] px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34]">
+                      {provider.tier}
+                    </span>
+                  </div>
+
+                  <div className="font-['Outfit'] text-xs font-bold text-[#091e3a]">
+                    Calificación: {provider.rating.toFixed(2)} / 5.0 (
+                    {provider.reviewsCount} reseñas)
+                  </div>
+                </div>
+
+                <h3 className="mt-3 font-['Outfit'] text-lg font-semibold text-[#091e3a]">
+                  {provider.name}
+                </h3>
+                <p className="text-xs font-medium text-neutral-700">
+                  {provider.leadPartner} · {provider.corridor}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-neutral-600">
+                  {provider.specialty}
+                </p>
+
+                {/* Entregables */}
+                <div className="mt-3 border-t border-[#eaedf0] pt-3">
+                  <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+                    ALCANCE DEL SERVICIO CERTIFICADO:
+                  </span>
+                  <ul className="mt-1.5 space-y-1 text-xs text-neutral-600">
+                    {provider.deliverables.map((deliv) => (
+                      <li key={deliv} className="flex items-start gap-1.5">
+                        <span className="text-[#0077cc]">▪</span>
+                        <span>{deliv}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Pie con Comisión por Referencia y Botón de Contratación */}
+              <div className="mt-5 border-t border-[#eaedf0] bg-[#f8f9fa] p-4">
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="block text-[10px] text-neutral-400">
+                      Ticket Promedio
+                    </span>
+                    <strong className="font-['Outfit'] text-[#091e3a]">
+                      {formatSovereignCurrency(
+                        provider.averageServiceFeeUsd,
+                        currency
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-neutral-400">
+                      Comisión Referencia
+                    </span>
+                    <strong className="font-['Outfit'] text-[#755a34]">
+                      {provider.referralCommissionPct}% (
+                      {formatSovereignCurrency(
+                        estimatedCommissionUsd,
+                        currency
+                      )}
+                      )
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-neutral-400">
+                      SLA de Atención
+                    </span>
+                    <strong className="font-['Outfit'] text-[#004044]">
+                      {provider.slaResponse}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3 pt-2">
+                  <span className="font-mono text-[11px] text-neutral-500">
+                    {provider.phone}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleCreateReferral(provider)}
+                    className="bg-[#091e3a] px-4 py-2 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
+                  >
+                    Contratar / Referir y Generar Comisión →
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bitácora de Contrataciones y Comisiones por Referencia */}
+      <div className="border border-[#e2e6ec] bg-white p-6">
+        <h3 className="font-['Outfit'] text-base font-semibold text-[#091e3a]">
+          Bitácora de Servicios Contratados &amp; Comisiones por Referencia
+        </h3>
+        <p className="text-xs text-neutral-500">
+          Trazabilidad de referencias enviadas a proveedores del Marketplace y liquidación de fees.
+        </p>
+
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-[#eaedf0] bg-[#f8f9fa] font-['Outfit'] text-[10px] uppercase tracking-wider text-neutral-500">
+                <th className="p-3">Categoría</th>
+                <th className="p-3">Proveedor Certificado</th>
+                <th className="p-3">Cliente &amp; Desarrollo</th>
+                <th className="p-3">Monto Servicio</th>
+                <th className="p-3">Comisión por Referencia</th>
+                <th className="p-3">Estatus</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#eaedf0]">
+              {referrals.map((ref) => (
+                <tr key={ref.id}>
+                  <td className="p-3 font-['Outfit'] font-semibold text-[#755a34]">
+                    {ref.category}
+                  </td>
+                  <td className="p-3 font-medium text-[#091e3a]">
+                    {ref.providerName}
+                  </td>
+                  <td className="p-3 text-neutral-600">
+                    <div>{ref.clientName}</div>
+                    <div className="text-[11px] text-neutral-400">
+                      {ref.propertyName} · {ref.createdAtLabel}
+                    </div>
+                  </td>
+                  <td className="p-3 font-['Outfit'] text-neutral-700">
+                    {formatSovereignCurrency(ref.estimatedServiceUsd, currency)}
+                  </td>
+                  <td className="p-3 font-['Outfit'] font-bold text-[#004044]">
+                    {formatSovereignCurrency(
+                      ref.referralCommissionUsd,
+                      currency
+                    )}
+                  </td>
+                  <td className="p-3">
+                    <span className="border border-[#091e3a]/20 bg-[#f8f9fa] px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a]">
+                      {ref.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
