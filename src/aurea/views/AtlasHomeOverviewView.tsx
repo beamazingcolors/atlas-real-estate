@@ -46,7 +46,7 @@ const ScrollRevealSection: React.FC<ScrollRevealProps> = ({
           }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -30px 0px" }
     );
 
     observer.observe(node);
@@ -57,14 +57,17 @@ const ScrollRevealSection: React.FC<ScrollRevealProps> = ({
     <div
       ref={ref}
       style={{ transitionDelay: `${delayMs}ms` }}
-      className={`transition-all duration-800 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[transform,opacity] ${
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+      className={`transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[transform,opacity] ${
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       } ${className}`}
     >
       {children}
     </div>
   );
 };
+
+type OnboardingStepId = 1 | 2 | 3 | 4 | 5;
+type NewUserRoleKey = "BROKER" | "INVERSIONISTA" | "DESARROLLADOR";
 
 interface AtlasHomeOverviewViewProps {
   properties: AureaProperty[];
@@ -85,13 +88,182 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
   onOpenOptionDetail,
   onOpenExitConcierge,
 }) => {
+  const [currentStep, setCurrentStep] = useState<OnboardingStepId>(1);
+  const [viewMode, setViewMode] = useState<"GUIDED_STEPS" | "FULL_OVERVIEW">(
+    "GUIDED_STEPS"
+  );
+  const [selectedUserRole, setSelectedUserRole] =
+    useState<NewUserRoleKey>("BROKER");
   const [selectedMapProperty, setSelectedMapProperty] =
     useState<AureaProperty>(properties[0]);
+
+  const stepAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const totalUnitsAvailable = properties.reduce(
     (acc, p) => acc + p.availableUnits,
     0
   );
+
+  const handleSelectStep = (step: OnboardingStepId) => {
+    setViewMode("GUIDED_STEPS");
+    setCurrentStep(step);
+    stepAnchorRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  const STEPS_META: {
+    id: OnboardingStepId;
+    shortTitle: string;
+    fullTitle: string;
+    subtitle: string;
+    outcomeLabel: string;
+  }[] = [
+    {
+      id: 1,
+      shortTitle: "Bienvenida y Perfil",
+      fullTitle: "Paso 1 · Conoce Proyecto Atlas y Elige tu Perfil",
+      subtitle:
+        "Entiende en 1 minuto qué resuelve la plataforma, quién la dirige y qué módulos usar primero según tu rol.",
+      outcomeLabel: "Claridad inicial y ruta recomendada",
+    },
+    {
+      id: 2,
+      shortTitle: "Desarrollos y Drive",
+      fullTitle: "Paso 2 · Explora los Desarrollos y su Carpeta Google Drive",
+      subtitle:
+        "Cada desarrollo ya tiene sus fotos, brochures, inventario de precios, planes de pago y fichas técnicas listos para abrir.",
+      outcomeLabel: "Toda la información comercial en mano",
+    },
+    {
+      id: 3,
+      shortTitle: "Mapa, ROI e IA",
+      fullTitle: "Paso 3 · Ubica en Mapa Real, Calcula ROI y Consulta Atlas AI",
+      subtitle:
+        "Valida ubicaciones reales por satélite, compara desarrollos lado a lado y simula la rentabilidad financiera.",
+      outcomeLabel: "Análisis patrimonial respaldado por datos",
+    },
+    {
+      id: 4,
+      shortTitle: "CRM y Marketplace",
+      fullTitle: "Paso 4 · Gestiona Clientes y Cierra con Aliados Certificados",
+      subtitle:
+        "Lleva el seguimiento de cada prospecto en el CRM Kanban y contrata notarías, hipotecas, seguros o interiorismo.",
+      outcomeLabel: "Operación y cierre profesional de punta a punta",
+    },
+    {
+      id: 5,
+      shortTitle: "Visión 5 Años",
+      fullTitle: "Paso 5 · Descubre el Plan Estratégico a 5 Años y los 10 Módulos",
+      subtitle:
+        "Visualiza la hoja de ruta completa (Año 1 a Año 5), los KPIs de crecimiento y el Portal para Desarrolladores.",
+      outcomeLabel: "Visión completa del ecosistema Atlas",
+    },
+  ];
+
+  const ROLE_RECOMMENDATIONS: Record<
+    NewUserRoleKey,
+    {
+      label: string;
+      headline: string;
+      description: string;
+      recommendedActions: {
+        title: string;
+        detail: string;
+        nav: NavSectionId;
+        cta: string;
+      }[];
+    }
+  > = {
+    BROKER: {
+      label: "Soy Asesor o Broker",
+      headline: "Vende más rápido con inventario verificado y seguimiento automatizado",
+      description:
+        "Accede a listas de precios actualizadas de Google Drive, genera dossieres en un clic, organiza a tus clientes en el CRM Kanban y gana comisiones por referencia en el Marketplace.",
+      recommendedActions: [
+        {
+          title: "1. Consultar Inventario y Drive",
+          detail:
+            "Abre fotos, brochures ES/EN y cotizador de descuentos para tus clientes.",
+          nav: "inventory",
+          cta: "Ir a Inventario",
+        },
+        {
+          title: "2. Registrar Prospectos en CRM",
+          detail:
+            "Controla tus 6 etapas de venta con seguimiento directo por WhatsApp.",
+          nav: "crm",
+          cta: "Abrir CRM",
+        },
+        {
+          title: "3. Apoyarte en Atlas AI",
+          detail:
+            "Redacta propuestas, resuelve dudas de fideicomisos y resume conversaciones.",
+          nav: "copilot",
+          cta: "Usar Atlas AI",
+        },
+      ],
+    },
+    INVERSIONISTA: {
+      label: "Soy Inversionista o Comprador",
+      headline: "Evalúa ubicaciones reales, descuentos de preventa y retorno neto",
+      description:
+        "Compara desarrollos frente a Laguna Nichupté, Huayacán y Playa del Carmen, calcula el Cap Rate real y valida toda la certeza jurídica bajo normativa NOM-247.",
+      recommendedActions: [
+        {
+          title: "1. Comparar hasta 3 Desarrollos",
+          detail:
+            "Revisa precio por m², mantenimiento, ROI anual y plusvalía a 5 años.",
+          nav: "comparator",
+          cta: "Abrir Comparador",
+        },
+        {
+          title: "2. Simular tu Flujo de Caja",
+          detail:
+            "Ajusta enganche, ocupación y tarifa por noche (ADR) en USD, MXN o EUR.",
+          nav: "calculator",
+          cta: "Abrir Calculadora",
+        },
+        {
+          title: "3. Contratar Aliados Certificados",
+          detail:
+            "Conecta con notarías, brokers hipotecarios, interiorismo y administración de rentas.",
+          nav: "directory",
+          cta: "Ver Marketplace",
+        },
+      ],
+    },
+    DESARROLLADOR: {
+      label: "Soy Desarrollador o Agencia",
+      headline: "Publica inventario en tiempo real y conecta tu CRM o ERP por API",
+      description:
+        "Centraliza tus carpetas comerciales, actualiza unidades disponibles al instante, gestiona firma electrónica y coordina tu fuerza de ventas con asignación Round-Robin.",
+      recommendedActions: [
+        {
+          title: "1. Portal de Desarrolladores & API",
+          detail:
+            "Edita unidades disponibles, precios y conecta HubSpot, Salesforce o SAP.",
+          nav: "developers",
+          cta: "Abrir Portal Dev",
+        },
+        {
+          title: "2. Auditoría Semanal de Drives",
+          detail:
+            "Verifica que todas las listas de precios y planos estén vigentes para los brokers.",
+          nav: "drives",
+          cta: "Ver Auditoría",
+        },
+        {
+          title: "3. Suite Agencia Multi-Broker",
+          detail:
+            "Configura marca blanca, reparto de leads Round-Robin y split de comisiones.",
+          nav: "agency",
+          cta: "Abrir Suite Agencia",
+        },
+      ],
+    },
+  };
 
   const HERO_KPI_DETAILS: {
     label: string;
@@ -107,7 +279,8 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
         id: "kpi-volumen",
         kicker: "MÉTRICA PATRIMONIAL · PROYECTO ATLAS",
         title: "Volumen Total en Cartera Gestionada ($48.5M USD)",
-        subtitle: "Inventario Auditado en Cancún, Huayacán y Playa del Carmen",
+        subtitle:
+          "Inventario Auditado en Cancún, Huayacán y Playa del Carmen",
         executiveSummary:
           "Representa el valor agregado del inventario activo sincronizado desde las carpetas oficiales de Google Drive de cada desarrollador (Nautica Residences Torres A y B, The Villas Collection, Isla Blanca Residences, Hodela Apartments, Prana Towers y Real Amalfi / Arrecifes del Caribe).",
         keyMetrics: [
@@ -196,183 +369,32 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
       },
     },
     {
-      label: "Corredores Activos",
-      value: "5 Zonas Prime",
+      label: "Ecosistema Integral",
+      value: "10 Módulos",
       accentClass: "text-[#755a34]",
       detail: {
-        id: "kpi-corredores",
-        kicker: "CARTOGRAFÍA INTERACTIVA · PROYECTO ATLAS",
-        title: "Cobertura Geoespacial en el Caribe Mexicano",
-        subtitle: "Cancún Zona Hotelera · Laguna Nichupté · Huayacán · Playa del Carmen",
+        id: "kpi-modulos",
+        kicker: "PLAN ESTRATÉGICO 5 AÑOS · PROYECTO ATLAS",
+        title: "10 Módulos Principales & Marketplace de 8 Categorías",
+        subtitle: "Todo el Ciclo Inmobiliario en un Solo Sistema Operativo",
         executiveSummary:
-          "Mapa interactivo real con coordenadas GPS verificadas para evaluar conectividad, vistas a Laguna Nichupté y Mar Caribe, cercanía a aeropuertos, marinas y clubes de playa.",
+          "Desde la captación e inventario en Google Drive hasta la firma electrónica, Atlas AI y los servicios complementarios postventa.",
         keyMetrics: [
-          { label: "Polo Náutico", value: "Laguna Nichupté / Zona Hotelera" },
-          { label: "Polo Residencial", value: "Av. Huayacán / Puerto Cancún" },
-          { label: "Polo Vacacional", value: "Playa del Carmen / Riviera Maya" },
+          { label: "Módulos Core", value: "10 Módulos" },
+          { label: "Agentes IA", value: "4 Especialistas" },
+          { label: "Marketplace", value: "8 Verticales" },
         ],
         bulletPoints: [
-          "Visualización satelital de alta resolución (Esri World Imagery) y capas editoriales.",
-          "Marcadores interactivos con apertura directa del expediente Google Drive de cada desarrollo.",
-          "Videos de dron por altura (17m, 27.5m, 42m, 56.5m, 71m y 77m) en Nautica Residences.",
+          "CRM Inmobiliario, Inventario, Marketplace, Atlas AI y Comparador Inteligente.",
+          "Analítica, Gestión Documental, Automatización, Portal Clientes y Portal Desarrolladores.",
         ],
         deliverables: [
-          "Mapa Satelital Interactivo",
-          "Coordenadas GPS Reales",
-          "Dossier por Ubicación",
+          "Roadmap Año 1 a Año 5",
+          "Simulador de Ingresos MRR",
+          "Portal Desarrolladores & API",
         ],
-        actionLabel: "Abrir Tablero y Cartografía",
-        targetNav: "executive",
-      },
-    },
-  ];
-
-  const PLATFORM_DISCIPLINES: {
-    numeral: string;
-    category: string;
-    title: string;
-    description: string;
-    actionLabel: string;
-    target: NavSectionId;
-    detail: InteractiveOptionDetail;
-  }[] = [
-    {
-      numeral: "I",
-      category: "AUDITORÍA & ACTIVOS GOOGLE DRIVE",
-      title: "Inventario Maestro & Expediente Documental Completo",
-      description:
-        "Concentra cada desarrollo con sus fotos reales, brochures en español e inglés, listas de precios por unidad, planes de pago con descuentos y fichas técnicas extraídas directamente de Google Drive.",
-      actionLabel: "Ver Detalle & Abrir Inventario",
-      target: "inventory",
-      detail: {
-        id: "disc-1",
-        kicker: "DISCIPLINA I · AUDITORÍA & ACTIVOS",
-        title: "Inventario Maestro & Expediente Documental Google Drive",
-        subtitle: "Fotos, Brochures, Inventario, Planes de Pago y Fichas Técnicas en Mano",
-        executiveSummary:
-          "Elimina la búsqueda manual entre decenas de carpetas. Cada desarrollo cuenta con un Centro Documental de 5 pestañas interactivas donde el broker y el inversionista consultan al instante renders oficiales, brochures PDF, unidades disponibles, simulador de descuentos y planos arquitectónicos.",
-        keyMetrics: [
-          { label: "Pestañas por Activo", value: "5 Módulos Documentales" },
-          { label: "Carpeta Principal", value: "Nautica & Desarrollos Aliados" },
-          { label: "Sincronización", value: "100% En Mano" },
-        ],
-        bulletPoints: [
-          "Pestaña 1 (Fotos & Renders): Fachadas, interiores, áreas comunes, showroom y enlaces a subcarpetas.",
-          "Pestaña 2 (Brochures Oficiales): Descarga directa de brochures en Español, Inglés, Villas y versión sin logos.",
-          "Pestaña 3 (Inventario & Precios): Tabla filtrable unidad por unidad con m², orientación y precio en MXN/USD/EUR.",
-          "Pestaña 4 (Planes de Pago): Cotizador automático con los descuentos autorizados (0%, 3%, 4%, 5%, 7%, 8%, 10%).",
-          "Pestaña 5 (Fichas Técnicas): Desglose de prototipos (Small, Ocean Front, Medium, Large, Ocean View, Villas y PH).",
-        ],
-        deliverables: [
-          "Renders Oficiales HD",
-          "Brochures PDF Directos",
-          "Tabla de Inventario Real",
-          "Cotizador de Planes de Pago",
-        ],
-        actionLabel: "Ir al Inventario Maestro",
-        targetNav: "inventory",
-      },
-    },
-    {
-      numeral: "II",
-      category: "INGENIERÍA FINANCIERA",
-      title: "Modelado de Cap Rate, Planes de Pago & Comparador",
-      description:
-        "Calcula con rigor institucional el retorno neto anual, flujo de efectivo por rentas vacacionales (ADR y ocupación), descuentos por enganche y compara hasta tres desarrollos lado a lado.",
-      actionLabel: "Ver Detalle & Simulador ROI",
-      target: "calculator",
-      detail: {
-        id: "disc-2",
-        kicker: "DISCIPLINA II · INGENIERÍA FINANCIERA",
-        title: "Simulador de Rentabilidad & Comparador Multidimensional",
-        subtitle: "Análisis Patrimonial en USD, MXN y EUR",
-        executiveSummary:
-          "Permite modelar en tiempo real escenarios de inversión ajustando precio de adquisición, porcentaje de enganche, tarifa promedio por noche (ADR), ocupación anual y costos de mantenimiento para proyectar el Cap Rate neto y el retorno a 5 años.",
-        keyMetrics: [
-          { label: "Divisas Soportadas", value: "USD · MXN · EUR" },
-          { label: "Comparativa Simultánea", value: "Hasta 3 Desarrollos" },
-          { label: "Horizonte de Plusvalía", value: "Proyección a 5 Años" },
-        ],
-        bulletPoints: [
-          "Cálculo instantáneo de precio por metro cuadrado y flujo de caja neto anual.",
-          "Integración con los esquemas de descuento de preventa de cada desarrollador.",
-          "Matriz comparativa lado a lado para presentar opciones claras al comité familiar o inversionista.",
-        ],
-        deliverables: [
-          "Simulador de Cap Rate Neto",
-          "Matriz Comparativa 3x",
-          "Conversión Multidivisa en Vivo",
-        ],
-        actionLabel: "Abrir Calculadora Financiera",
-        targetNav: "calculator",
-      },
-    },
-    {
-      numeral: "III",
-      category: "DEALFLOW PATRIMONIAL",
-      title: "CRM Pipeline de 6 Fases & Selecciones para Clientes",
-      description:
-        "Gestiona cada operación desde el contacto inicial y calificación patrimonial hasta la firma de Carta Oferta y escrituración, con envío directo por WhatsApp y colecciones privadas.",
-      actionLabel: "Ver Detalle & Abrir CRM",
-      target: "crm",
-      detail: {
-        id: "disc-3",
-        kicker: "DISCIPLINA III · DEALFLOW PATRIMONIAL",
-        title: "CRM Inmobiliario de 6 Fases & Gestor de Clientes VIP",
-        subtitle: "Trazabilidad Comercial desde el Primer Contacto hasta Notaría",
-        executiveSummary:
-          "Estructura el embudo comercial en 6 etapas ejecutivas (Contacto Inicial, Calificación Patrimonial, Envío de Portafolio, Recorrido Presencial, Negociación de Oferta y Firma Notarial) con notas de due diligence y contacto inmediato.",
-        keyMetrics: [
-          { label: "Etapas del Pipeline", value: "6 Fases Kanban" },
-          { label: "Segmentación", value: "Family Office / Fondo / Final" },
-          { label: "Persistencia", value: "LocalStorage Cifrado" },
-        ],
-        bulletPoints: [
-          "Fichas de prospectos con presupuesto, desarrollo de interés, fuente del lead y notas privadas.",
-          "Generador de mensajes ejecutivos pre-redactados para seguimiento directo por WhatsApp.",
-          "Curaduría de colecciones personalizadas para cada cliente patrimonial.",
-        ],
-        deliverables: [
-          "Tablero Kanban de 6 Fases",
-          "Directorio de Clientes VIP",
-          "Protocolo de Visitas Privadas",
-        ],
-        actionLabel: "Abrir Pipeline CRM",
-        targetNav: "crm",
-      },
-    },
-    {
-      numeral: "IV",
-      category: "INTELIGENCIA JURÍDICA & AGENCIA",
-      title: "Atlas Copilot IA & Gobernanza Multi-Broker",
-      description:
-        "Resuelve al instante consultas sobre Fideicomisos en Zona Restringida, checklists para extranjeros, cuentas bancarias USD/EUR/MXN y coordina equipos con asignación Round-Robin.",
-      actionLabel: "Ver Detalle & Consultar Copilot",
-      target: "copilot",
-      detail: {
-        id: "disc-4",
-        kicker: "DISCIPLINA IV · INTELIGENCIA JURÍDICA & AGENCIA",
-        title: "Atlas Copilot IA & Suite Corporativa Multi-Broker",
-        subtitle: "Asesoría Fiduciaria, Fiscal y Asignación Inteligente de Leads",
-        executiveSummary:
-          "Combina un asistente especializado en derecho inmobiliario mexicano (Fideicomisos en Zona Restringida, ISR, IVA, NOM-247, checklists de compraventa nacional y extranjero) con una consola de agencia para administrar brokers y comisiones.",
-        keyMetrics: [
-          { label: "Cobertura Legal", value: "Fideicomisos & NOM-247" },
-          { label: "Distribución de Leads", value: "Algoritmo Round-Robin" },
-          { label: "Personalización", value: "Marca Blanca Activa" },
-        ],
-        bulletPoints: [
-          "Respuestas inmediatas sobre costos de escrituración, retenciones fiscales y estructura fiduciaria.",
-          "Reparto automatizado de prospectos entre asesores de la agencia mediante Round-Robin.",
-          "Configuración de split de comisiones entre agencia y broker.",
-        ],
-        deliverables: [
-          "Asistente Atlas Copilot IA",
-          "Consola Multi-Broker",
-          "Bóveda de Seguridad & Escudo XSS",
-        ],
-        actionLabel: "Consultar Atlas Copilot IA",
-        targetNav: "copilot",
+        actionLabel: "Ver Plan Estratégico 5 Años",
+        targetNav: "masterplan",
       },
     },
   ];
@@ -403,9 +425,9 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
           { label: "Protección", value: "Adquirente & Inversionista" },
         ],
         bulletPoints: [
-          "Cartas Oferta oficiales en Español e Inglés disponibles en carpeta 7 de Google Drive.",
+          "Cartas Oferta oficiales en Español e Inglés disponibles en Google Drive.",
           "Especificaciones de acabados y equipamiento integradas en cada ficha técnica.",
-          "Políticas claras de apartado (ej. 15 días naturales de reserva reembolsable en Isla Blanca).",
+          "Políticas claras de apartado y reserva reembolsable.",
         ],
         deliverables: [
           "Carta Oferta Oficial ES/EN",
@@ -428,7 +450,7 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
         title: "Adquisición Segura para Extranjeros en Zona Costera",
         subtitle: "Checklists Nacional y Foreign + Cuentas en USD, EUR y MXN",
         executiveSummary:
-          "En el expediente de Google Drive de Nautica Residences y desarrollos aliados se incluyen los checklists específicos para compradores extranjeros (NAUTICA RESIDENCES - CHECK LIST - FOREIGN.pdf) y nacionales, así como cuentas bancarias en tres divisas.",
+          "Incluye checklists específicos para compradores extranjeros y nacionales, además de instrucciones de cuentas bancarias en tres divisas.",
         keyMetrics: [
           { label: "Vigencia Fideicomiso", value: "50 Años Renovables" },
           { label: "Cuentas Habilitadas", value: "USD · EUR · MXN" },
@@ -436,15 +458,14 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
         ],
         bulletPoints: [
           "Derechos fiduciarios plenos para usar, rentar, remodelar, heredar o vender el inmueble.",
-          "Instrucciones bancarias verificadas en carpeta 4. CUENTA BANCARIA (USD, Euros y Pesos).",
-          "Asesoría paso a paso mediante Atlas Copilot IA.",
+          "Asesoría paso a paso mediante Atlas AI.",
         ],
         deliverables: [
           "Checklist Comprador Extranjero PDF",
           "Checklist Comprador Nacional PDF",
           "Cuentas Bancarias USD / EUR / MXN",
         ],
-        actionLabel: "Consultar en Atlas Copilot",
+        actionLabel: "Consultar en Atlas AI",
         targetNav: "copilot",
       },
     },
@@ -467,13 +488,12 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
           { label: "Normativa Privacidad", value: "LFPDPPP México" },
         ],
         bulletPoints: [
-          "Monitoreo en tiempo real de eventos de seguridad en el módulo Bóveda de Seguridad.",
+          "Monitoreo en tiempo real de eventos de seguridad en Bóveda de Seguridad.",
           "Control de acceso por nivel de membresía (Básica, Pro y Agencia Corporativa).",
-          "Cumplimiento de aviso de privacidad y consentimiento de datos.",
         ],
         deliverables: [
           "Audit Log en Vivo",
-          "Simulador de Ataques / Escudo",
+          "Simulador de Escudo",
           "Control de Membresías",
         ],
         actionLabel: "Abrir Bóveda de Seguridad",
@@ -485,14 +505,15 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
       authority: "VALUACIÓN & DUE DILIGENCE",
       title: "Auditoría Semanal de Inventario Oficial",
       detail:
-        "Sincronización directa con las carpetas de Google Drive para validar disponibilidad real y vigencia de listas de precios.",
+        "Sincronización directa con carpetas de Google Drive para validar disponibilidad real y vigencia de listas de precios.",
       modalDetail: {
         id: "cert-rics",
         kicker: "DUE DILIGENCE TÉCNICO · AUDITORÍA DE DRIVES",
         title: "Verificación de Inventario, Planos y Precios en Google Drive",
-        subtitle: "Trazabilidad Directa con NAÚMA, GMB, ABRE, Grupo Logar y Almaré",
+        subtitle:
+          "Trazabilidad Directa con NAÚMA, GMB, ABRE, Grupo Logar y Almaré",
         executiveSummary:
-          "Garantiza que las cotizaciones presentadas a los inversionistas correspondan exactamente con la disponibilidad actual de Torre A, Torre B, The Villas Collection, Isla Blanca, Hodela y Prana Towers.",
+          "Garantiza que las cotizaciones presentadas a los inversionistas correspondan exactamente con la disponibilidad actual de cada torre y desarrollo.",
         keyMetrics: [
           { label: "Desarrollos Sincronizados", value: "6 Carpetas Maestras" },
           { label: "Planos Ejecutivos", value: "100% Completos" },
@@ -500,8 +521,7 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
         ],
         bulletPoints: [
           "Acceso con un clic a la carpeta original de Google Drive de cada desarrollo.",
-          "Verificación de currículum vitae de desarrolladores y arquitectos (Niz+Chauvet, Artigas, GMB, NAÚMA).",
-          "Videos reales de dron por nivel de altura para confirmar vistas antes de comprar.",
+          "Vistas reales de dron por nivel de altura.",
         ],
         deliverables: [
           "Enlace Directo a Google Drive",
@@ -514,17 +534,646 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
     },
   ];
 
+  const activeStepMeta =
+    STEPS_META.find((s) => s.id === currentStep) ?? STEPS_META[0];
+  const activeRoleGuide = ROLE_RECOMMENDATIONS[selectedUserRole];
+
+  const cardSurface = isDarkMode
+    ? "border-[#1e2f48] bg-[#0c1524] text-white"
+    : "border-[#e2e6ec] bg-white text-[#091e3a]";
+  const innerSurface = isDarkMode
+    ? "border-slate-800 bg-[#091322] text-white"
+    : "border-[#eaedf0] bg-[#f8f9fa] text-[#091e3a]";
+
+  const renderStep1WelcomeAndProfile = () => (
+    <section className={`border p-7 sm:p-10 ${cardSurface}`}>
+      <div className="border-b border-[#eaedf0]/60 pb-5">
+        <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.24em] text-[#0077cc]">
+          PASO 1 DE 5 · BIENVENIDA &amp; ORIENTACIÓN RÁPIDA
+        </span>
+        <h2 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight">
+          ¿Qué es Proyecto Atlas y por dónde empezar?
+        </h2>
+        <p className="mt-1 text-xs text-neutral-500">
+          Elige tu perfil para recibir una ruta recomendada de 3 acciones simples dentro de la plataforma.
+        </p>
+      </div>
+
+      {/* Selector de Perfil del Nuevo Usuario */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="space-y-4 lg:col-span-8">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {(["BROKER", "INVERSIONISTA", "DESARROLLADOR"] as NewUserRoleKey[]).map(
+              (roleKey) => {
+                const isSelected = selectedUserRole === roleKey;
+                return (
+                  <button
+                    key={roleKey}
+                    type="button"
+                    onClick={() => setSelectedUserRole(roleKey)}
+                    className={`border px-4 py-3 text-left font-['Outfit'] text-xs font-semibold uppercase tracking-wider transition ${
+                      isSelected
+                        ? "border-[#091e3a] bg-[#091e3a] text-white shadow-sm"
+                        : isDarkMode
+                        ? "border-slate-700 bg-[#091322] text-slate-300 hover:border-[#00b4f5]"
+                        : "border-[#eaedf0] bg-[#f8f9fa] text-[#091e3a] hover:border-[#091e3a]"
+                    }`}
+                  >
+                    {ROLE_RECOMMENDATIONS[roleKey].label}
+                  </button>
+                );
+              }
+            )}
+          </div>
+
+          <div className={`border p-6 ${innerSurface}`}>
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#755a34]">
+              TU RUTA RECOMENDADA ({activeRoleGuide.label})
+            </span>
+            <h3 className="mt-1.5 font-['Outfit'] text-lg font-semibold">
+              {activeRoleGuide.headline}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+              {activeRoleGuide.description}
+            </p>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {activeRoleGuide.recommendedActions.map((act) => (
+                <button
+                  key={act.title}
+                  type="button"
+                  onClick={() => onNavigate(act.nav)}
+                  className={`group flex flex-col justify-between border p-4 text-left transition hover:-translate-y-0.5 ${
+                    isDarkMode
+                      ? "border-slate-700 bg-[#0c1524] hover:border-[#00b4f5]"
+                      : "border-[#eaedf0] bg-white hover:border-[#091e3a]"
+                  }`}
+                >
+                  <div>
+                    <div
+                      className={`font-['Outfit'] text-xs font-bold ${
+                        isDarkMode ? "text-white" : "text-[#091e3a]"
+                      }`}
+                    >
+                      {act.title}
+                    </div>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">
+                      {act.detail}
+                    </p>
+                  </div>
+                  <span className="mt-3 inline-flex items-center gap-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#0077cc] group-hover:underline">
+                    <span>{act.cta}</span>
+                    <span>→</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tarjeta Compacta de Liderazgo — Andre Fraga */}
+        <div
+          className={`flex flex-col justify-between border p-6 lg:col-span-4 ${innerSurface}`}
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-16 shrink-0 overflow-hidden border border-[#d8dee6]">
+              <img
+                src="/andre-fraga-ceo.jpg"
+                alt="Andre Fraga — CEO de Proyecto Atlas"
+                loading="lazy"
+                className="h-full w-full object-cover object-top"
+              />
+            </div>
+            <div>
+              <span className="font-['Outfit'] text-[9px] font-semibold uppercase tracking-[0.22em] text-[#755a34]">
+                DIRECCIÓN EJECUTIVA
+              </span>
+              <h3 className="mt-0.5 font-['Outfit'] text-base font-semibold">
+                Andre Fraga
+              </h3>
+              <p className="font-['Outfit'] text-[10px] uppercase tracking-wider text-[#0077cc]">
+                CEO &amp; Founder · Proyecto Atlas
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs leading-relaxed text-neutral-500">
+            “Centralizamos todo el proceso inmobiliario —inventario real de Google Drive, análisis financiero, CRM, inteligencia artificial y aliados certificados— para que cualquier nuevo usuario opere con claridad desde el primer día.”
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#eaedf0]/50 pt-4">
+            <button
+              type="button"
+              onClick={() =>
+                onOpenOptionDetail({
+                  id: "ceo-mandate",
+                  kicker: "DIRECCIÓN EJECUTIVA · ANDRE FRAGA",
+                  title: "Tesis Patrimonial & Estándar de Proyecto Atlas",
+                  subtitle: "Transparencia Documental en Cancún & Riviera Maya",
+                  executiveSummary:
+                    "La oficina de Andre Fraga garantiza que cada desarrollo presente su expediente oficial completo: brochures, inventario auditado, descuentos autorizados y certeza fiduciaria.",
+                  keyMetrics: [
+                    { label: "CEO & Founder", value: "Andre Fraga" },
+                    { label: "Desarrollos", value: `${properties.length} Carteras` },
+                    { label: "Unidades", value: `${totalUnitsAvailable} Activas` },
+                  ],
+                  bulletPoints: [
+                    "Acceso directo en mano al Google Drive oficial de Nautica Residences by Naúma.",
+                    "Simulador de planes de pago (30/70, 50/50, 80/20, 90/10).",
+                    "Acompañamiento integral hasta escritura pública o fideicomiso.",
+                  ],
+                  deliverables: [
+                    "Dossier Institucional",
+                    "Recorridos VIP",
+                    "Mesa Jurídica",
+                  ],
+                  actionLabel: "Ir al Tablero Ejecutivo",
+                  targetNav: "executive",
+                })
+              }
+              className="border border-[#091e3a] bg-[#091e3a] px-3 py-2 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
+            >
+              Ver Tesis de Dirección →
+            </button>
+            {onOpenExitConcierge && (
+              <button
+                type="button"
+                onClick={onOpenExitConcierge}
+                className="border border-[#755a34] px-3 py-2 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
+              >
+                Solicitar Presentación
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Respaldo Regulatorio: 4 Sellos en Fila Limpia */}
+      <div className="mt-6 grid grid-cols-1 gap-3 border-t border-[#eaedf0]/60 pt-6 sm:grid-cols-2 lg:grid-cols-4">
+        {TRUST_CERTIFICATES.map((cert) => (
+          <button
+            key={cert.code}
+            type="button"
+            onClick={() => onOpenOptionDetail(cert.modalDetail)}
+            className={`group border p-4 text-left transition hover:border-[#091e3a] ${innerSurface}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-['Outfit'] text-[10px] font-bold uppercase tracking-wider text-[#755a34]">
+                {cert.code}
+              </span>
+              <span className="text-xs text-[#0077cc] transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
+            </div>
+            <div className="mt-1 font-['Outfit'] text-xs font-semibold">
+              {cert.title}
+            </div>
+            <p className="mt-1 text-[11px] text-neutral-500">{cert.detail}</p>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderStep2DevelopmentsAndDrive = () => (
+    <section className={`border p-7 sm:p-10 ${cardSurface}`}>
+      <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0]/60 pb-6 sm:flex-row sm:items-end">
+        <div>
+          <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#755a34]">
+            PASO 2 DE 5 · EXPEDIENTES GOOGLE DRIVE EN MANO
+          </span>
+          <h2 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight">
+            Desarrollos Verificados — Elige un Proyecto y Abre lo que Necesites
+          </h2>
+          <p className="mt-1 text-xs text-neutral-500">
+            Cada tarjeta incluye 5 botones directos para consultar Fotos, Brochure, Inventario, Planes de Pago y Fichas Técnicas sin salir de Proyecto Atlas.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigate("inventory")}
+          className="self-start bg-[#091e3a] px-4 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
+        >
+          Ver Inventario con Filtros ({properties.length}) →
+        </button>
+      </div>
+
+      <div className="mt-7 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {properties.map((prop) => {
+          const imgUrl = prop.customImageUrl ?? prop.defaultImageUrl;
+          return (
+            <article
+              key={prop.id}
+              className={`group flex flex-col justify-between border transition-all duration-300 hover:-translate-y-1 ${innerSurface}`}
+            >
+              <div>
+                <div
+                  onClick={() => onOpenDossier(prop, "GALLERY")}
+                  className="relative h-52 cursor-pointer overflow-hidden bg-neutral-900"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={prop.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  <div className="absolute left-3 top-3 flex items-center gap-2">
+                    <span className="bg-[#091e3a]/90 px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white">
+                      {prop.zone}
+                    </span>
+                    <span className="bg-[#004044] px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white">
+                      ROI {prop.roiAnnualPct}%
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <span className="font-['Outfit'] text-[10px] uppercase tracking-[0.2em] text-[#00b4f5]">
+                      {prop.code} · {prop.availableUnits} UNIDADES DISPONIBLES
+                    </span>
+                    <h4 className="font-['Outfit'] text-lg font-bold leading-snug">
+                      {prop.name}
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-['Outfit'] text-[10px] uppercase tracking-wider text-neutral-400">
+                      Precio Desde
+                    </span>
+                    <span className="font-['Outfit'] text-base font-bold">
+                      {formatSovereignCurrency(prop.priceUsd, currency)}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-neutral-500">
+                    {prop.subtitle}
+                  </p>
+
+                  {/* 5 Botones Directos al Google Drive */}
+                  <div className="mt-4 border-t border-[#eaedf0]/60 pt-3">
+                    <span className="block font-['Outfit'] text-[9px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
+                      DOCUMENTACIÓN EN MANO:
+                    </span>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossier(prop, "GALLERY")}
+                        className="border border-[#091e3a]/20 bg-white px-2 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Fotos ({prop.galleryImages?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossier(prop, "BROCHURES")}
+                        className="border border-[#091e3a]/20 bg-white px-2 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Brochure ({prop.brochures?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossier(prop, "INVENTORY")}
+                        className="border border-[#091e3a]/20 bg-white px-2 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
+                      >
+                        Inventario ({prop.inventoryUnits?.length ?? prop.availableUnits})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossier(prop, "PAYMENT_PLANS")}
+                        className="border border-[#755a34]/40 bg-[#faeedd]/50 px-2 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
+                      >
+                        Planes Pago ({prop.paymentPlans?.length ?? 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onOpenDossier(prop, "TECH_SPECS")}
+                        className="col-span-2 border border-[#0077cc]/30 bg-[#0077cc]/5 px-2 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#0077cc] transition hover:bg-[#0077cc] hover:text-white sm:col-span-1"
+                      >
+                        Fichas Técnicas
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-[#eaedf0]/60 px-5 py-3">
+                <a
+                  href={prop.driveFolderUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-neutral-500 hover:text-[#0077cc]"
+                >
+                  Google Drive ↗
+                </a>
+                <button
+                  type="button"
+                  onClick={() => onOpenDossier(prop, "INVENTORY")}
+                  className="font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-[#0077cc] hover:text-[#755a34]"
+                >
+                  Abrir Expediente Completo →
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+
+  const renderStep3MapAndAnalysis = () => (
+    <section className="space-y-6">
+      <div className="border border-[#091e3a] bg-[#091e3a] p-7 text-white sm:p-10">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-white/15 pb-4">
+          <div>
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#00b4f5]">
+              PASO 3 DE 5 · UBICACIÓN SATELITAL REAL &amp; ANÁLISIS FINANCIERO
+            </span>
+            <h2 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight text-white">
+              Mapa Satelital Real — Cancún, Huayacán y Playa del Carmen
+            </h2>
+            <p className="mt-1 text-xs text-slate-300">
+              Selecciona cualquier desarrollo para acercarte a su ubicación real por satélite y abrir su ficha financiera.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {properties.map((p) => {
+              const active = selectedMapProperty?.id === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedMapProperty(p)}
+                  className={`px-3 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider transition ${
+                    active
+                      ? "bg-[#755a34] text-white"
+                      : "border border-white/20 bg-white/5 text-slate-300 hover:bg-white/15"
+                  }`}
+                >
+                  {p.name.split("—")[0].split("(")[0].trim()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <RealInteractiveMap
+          properties={properties}
+          selectedProperty={selectedMapProperty}
+          currency={currency}
+          onSelectProperty={(p) => setSelectedMapProperty(p)}
+          onOpenDossier={(p) => onOpenDossier(p, "GALLERY")}
+        />
+      </div>
+
+      {/* 3 Herramientas de Análisis Listas para Usar */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {[
+          {
+            kicker: "HERRAMIENTA 01 · COMPARATIVA",
+            title: "Comparador Inteligente (Hasta 3x)",
+            desc: "Compara lado a lado precio por m², mantenimiento mensual, Cap Rate y plusvalía a 5 años.",
+            cta: "Abrir Comparador",
+            nav: "comparator" as NavSectionId,
+          },
+          {
+            kicker: "HERRAMIENTA 02 · SIMULADOR FINANCIERO",
+            title: "Calculadora de ROI y Flujo de Caja",
+            desc: "Simula tarifa por noche (ADR), ocupación anual, enganche y tiempo de recuperación.",
+            cta: "Abrir Calculadora",
+            nav: "calculator" as NavSectionId,
+          },
+          {
+            kicker: "HERRAMIENTA 03 · INTELIGENCIA ARTIFICIAL",
+            title: "Atlas AI (4 Agentes & 9 Funciones)",
+            desc: "Busca por lenguaje natural, calcula plusvalía, redacta propuestas y resuelve dudas de fideicomiso.",
+            cta: "Consultar Atlas AI",
+            nav: "copilot" as NavSectionId,
+          },
+        ].map((tool) => (
+          <button
+            key={tool.title}
+            type="button"
+            onClick={() => onNavigate(tool.nav)}
+            className={`group flex flex-col justify-between border p-6 text-left transition hover:-translate-y-1 ${cardSurface}`}
+          >
+            <div>
+              <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
+                {tool.kicker}
+              </span>
+              <h3 className="mt-1.5 font-['Outfit'] text-lg font-semibold">
+                {tool.title}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+                {tool.desc}
+              </p>
+            </div>
+            <span className="mt-5 inline-flex items-center gap-1 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-[#0077cc] group-hover:underline">
+              <span>{tool.cta}</span>
+              <span>→</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderStep4OperationsAndMarketplace = () => (
+    <section className={`border p-7 sm:p-10 ${cardSurface}`}>
+      <div className="border-b border-[#eaedf0]/60 pb-5">
+        <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#0077cc]">
+          PASO 4 DE 5 · OPERACIÓN COMERCIAL, CLIENTES Y MARKETPLACE DE SERVICIOS
+        </span>
+        <h2 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight">
+          Del Primer Contacto al Cierre Notarial y Postventa en 4 Pasos Simples
+        </h2>
+        <p className="mt-1 text-xs text-neutral-500">
+          Aquí es donde conviertes las propiedades en operaciones cerradas y conectas con proveedores certificados.
+        </p>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[
+          {
+            step: "A",
+            title: "CRM Inmobiliario (6 Etapas)",
+            desc: "Registra prospectos, califica presupuesto y envía mensajes pre-redactados por WhatsApp en un clic.",
+            nav: "crm" as NavSectionId,
+            cta: "Abrir CRM Pipeline",
+          },
+          {
+            step: "B",
+            title: "Portal para Clientes VIP",
+            desc: "Arma una Selección Exclusiva de propiedades para cada inversionista y compártela por enlace.",
+            nav: "clients" as NavSectionId,
+            cta: "Abrir Portal Clientes",
+          },
+          {
+            step: "C",
+            title: "Marketplace (8 Categorías)",
+            desc: "Contrata Notarías, Hipotecas, Seguros, Avalúos, Arquitectos, Interiorismo, Mudanzas y Rentas.",
+            nav: "directory" as NavSectionId,
+            cta: "Explorar Marketplace",
+          },
+          {
+            step: "D",
+            title: "Portal Desarrolladores & Firma",
+            desc: "Actualiza unidades en tiempo real, conecta CRMs/ERPs por API y firma Cartas Oferta digitales.",
+            nav: "developers" as NavSectionId,
+            cta: "Abrir Portal & Firma",
+          },
+        ].map((card) => (
+          <button
+            key={card.step}
+            type="button"
+            onClick={() => onNavigate(card.nav)}
+            className={`group flex flex-col justify-between border p-5 text-left transition hover:-translate-y-1 ${innerSurface}`}
+          >
+            <div>
+              <span className="inline-block bg-[#091e3a] px-2.5 py-0.5 font-['Outfit'] text-[10px] font-bold uppercase tracking-wider text-white">
+                Módulo {card.step}
+              </span>
+              <h3 className="mt-3 font-['Outfit'] text-base font-semibold">
+                {card.title}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+                {card.desc}
+              </p>
+            </div>
+            <span className="mt-4 inline-flex items-center gap-1 font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-[#755a34] group-hover:underline">
+              <span>{card.cta}</span>
+              <span>→</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderStep5MasterplanAndModules = () => (
+    <section className={`border p-7 sm:p-10 ${cardSurface}`}>
+      <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0]/60 pb-6 lg:flex-row lg:items-end">
+        <div>
+          <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#755a34]">
+            PASO 5 DE 5 · PLAN ESTRATÉGICO (PRIMEROS 5 AÑOS) &amp; 10 MÓDULOS
+          </span>
+          <h2 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight">
+            Roadmap de Evolución (Año 1 a Año 5) y Acceso Directo a los 10 Módulos
+          </h2>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-neutral-500">
+            Consulta cómo escala Atlas Real Estate desde el MVP operativo hasta consolidarse como la plataforma inmobiliaria integral líder en México.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigate("masterplan")}
+          className="self-start bg-[#091e3a] px-5 py-3 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#0077cc]"
+        >
+          Abrir Simulador MRR &amp; Plan 5 Años →
+        </button>
+      </div>
+
+      {/* Los 5 Años del Roadmap como Botones Interactivos */}
+      <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-5">
+        {STRATEGIC_5Y_ROADMAP.map((yr) => (
+          <button
+            key={yr.key}
+            type="button"
+            onClick={() =>
+              onOpenOptionDetail({
+                id: `home-roadmap-${yr.key}`,
+                kicker: `ROADMAP ESTRATÉGICO · ${yr.label}`,
+                title: `${yr.label}: ${yr.phaseTitle}`,
+                subtitle: yr.subtitle,
+                executiveSummary: yr.executiveThesis,
+                keyMetrics: [
+                  { label: "Usuarios Meta", value: yr.kpis.registeredUsers },
+                  {
+                    label: "Desarrollos",
+                    value: yr.kpis.publishedDevelopments,
+                  },
+                  {
+                    label: "MRR Proyectado",
+                    value: formatSovereignCurrency(yr.kpis.mrrUsd, currency),
+                  },
+                ],
+                bulletPoints: yr.deliverables.map(
+                  (d) => `${d.title}: ${d.detail}`
+                ),
+                deliverables: yr.deliverables.map((d) => d.title),
+                actionLabel: yr.actionButtonLabel,
+                targetNav: yr.targetNav,
+              })
+            }
+            className={`group flex flex-col justify-between border p-5 text-left transition hover:-translate-y-1 ${innerSurface}`}
+          >
+            <div>
+              <span className="font-['Outfit'] text-[10px] font-bold uppercase tracking-[0.2em] text-[#0077cc]">
+                {yr.label}
+              </span>
+              <h3 className="mt-1.5 font-['Outfit'] text-sm font-semibold">
+                {yr.phaseTitle}
+              </h3>
+              <ul className="mt-3 space-y-1 text-[11px] text-neutral-500">
+                {yr.deliverables.map((deliv) => (
+                  <li key={deliv.title} className="flex items-start gap-1">
+                    <span className="text-[#755a34]">▪</span>
+                    <span>{deliv.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <span className="mt-4 inline-flex items-center gap-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] group-hover:underline">
+              <span>Ver KPIs del Año</span>
+              <span>→</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Acceso Rápido a los 10 Módulos */}
+      <div className="mt-7 border-t border-[#eaedf0]/60 pt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#0077cc]">
+            LOS 10 MÓDULOS PRINCIPALES (CLIC PARA ENTRAR)
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+          {TEN_CORE_MODULES.map((mod) => (
+            <button
+              key={mod.number}
+              type="button"
+              onClick={() => onNavigate(mod.targetNav)}
+              className={`flex flex-col justify-between border p-3.5 text-left transition hover:border-[#091e3a] ${innerSurface}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-['Outfit'] text-xs font-bold text-[#755a34]">
+                  {mod.number}
+                </span>
+                <span className="font-['Outfit'] text-[9px] uppercase tracking-wider text-neutral-400">
+                  {mod.yearIntroduced}
+                </span>
+              </div>
+              <div className="mt-1.5 font-['Outfit'] text-xs font-semibold">
+                {mod.title}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
-    <div className="space-y-14 pb-16">
+    <div className="space-y-10 pb-16">
       {/* =====================================================================
-          1. HERO ARQUITECTÓNICO CON BOTONES INTERACTIVOS DE DETALLE
+          1. HERO EDITORIAL CLARO Y PRESENTABLE
       ====================================================================== */}
       <section
-        className={`relative overflow-hidden border transition-colors duration-500 ${
-          isDarkMode
-            ? "border-[#1e2f48] bg-[#091322] text-white"
-            : "border-[#e2e6ec] bg-white text-[#091e3a]"
-        }`}
+        className={`relative overflow-hidden border transition-colors duration-500 ${cardSurface}`}
       >
         <div
           aria-hidden="true"
@@ -537,8 +1186,7 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
         />
 
         <div className="relative grid grid-cols-1 lg:grid-cols-12">
-          {/* Columna Editorial Izquierda */}
-          <div className="flex flex-col justify-between p-7 sm:p-12 lg:col-span-7 lg:p-14">
+          <div className="flex flex-col justify-between p-7 sm:p-11 lg:col-span-7 lg:p-12">
             <div>
               <div className="animate-hero-rise-1 flex items-center gap-4">
                 <span className="animate-hero-line inline-block h-[1px] w-10 bg-[#0077cc]" />
@@ -547,33 +1195,25 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                 </span>
               </div>
 
-              <h1
-                className={`animate-hero-rise-2 mt-6 font-['Outfit'] text-3xl font-light leading-[1.12] tracking-tight sm:text-5xl ${
-                  isDarkMode ? "text-white" : "text-[#091e3a]"
-                }`}
-              >
-                Arquitectura de Inversión y{" "}
+              <h1 className="animate-hero-rise-2 mt-5 font-['Outfit'] text-3xl font-light leading-[1.12] tracking-tight sm:text-5xl">
+                Todo el Proceso Inmobiliario,{" "}
                 <span className="font-semibold">
-                  Dirección Patrimonial Inmobiliaria
+                  Organizado Paso a Paso
                 </span>
               </h1>
 
-              <p
-                className={`animate-hero-rise-3 mt-6 max-w-2xl text-sm leading-[1.8] sm:text-base ${
-                  isDarkMode ? "text-slate-300" : "text-neutral-600"
-                }`}
-              >
-                <strong>Proyecto Atlas</strong> centraliza toda la documentación oficial de Google Drive de cada desarrollo —<strong>fotos y renders reales, brochures en español e inglés, inventario unidad por unidad, planes de pago con descuentos y fichas técnicas</strong>— dentro de una plataforma de banca privada dirigida por <strong>Andre Fraga</strong>.
+              <p className="animate-hero-rise-3 mt-5 max-w-2xl text-sm leading-[1.8] text-neutral-500 sm:text-base">
+                <strong>Proyecto Atlas</strong> reúne en un solo lugar el inventario oficial de desarrollos (fotos, brochures, precios, planes de pago y fichas técnicas de Google Drive), análisis de ROI, mapa satelital real, CRM, Atlas AI y un Marketplace de servicios certificados.
               </p>
 
-              {/* Microinteracciones en Botones Principales */}
-              <div className="animate-hero-rise-3 mt-9 flex flex-col gap-3.5 sm:flex-row sm:flex-wrap sm:items-center">
+              {/* Acciones Claras para Nuevo Usuario */}
+              <div className="animate-hero-rise-3 mt-7 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => onNavigate("executive")}
-                  className="atlas-btn-primary group inline-flex items-center justify-center gap-3 bg-[#091e3a] px-7 py-4 font-['Outfit'] text-xs font-medium uppercase tracking-[0.2em] text-white"
+                  onClick={() => handleSelectStep(1)}
+                  className="atlas-btn-primary group inline-flex items-center justify-center gap-2.5 bg-[#091e3a] px-6 py-3.5 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-white"
                 >
-                  <span>Ingresar al Tablero Ejecutivo</span>
+                  <span>Iniciar Recorrido Paso a Paso</span>
                   <span className="material-symbols-outlined text-[16px] text-[#00b4f5] transition-transform duration-300 group-hover:translate-x-1">
                     east
                   </span>
@@ -582,58 +1222,43 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenDossier(properties[0], "GALLERY")}
-                  className={`atlas-btn-secondary group inline-flex items-center justify-center gap-3 border px-6 py-4 font-['Outfit'] text-xs font-medium uppercase tracking-[0.2em] ${
-                    isDarkMode
-                      ? "border-slate-700 bg-transparent text-slate-200 hover:border-[#00b4f5] hover:text-white"
-                      : "border-[#091e3a]/25 bg-[#f8f9fa] text-[#091e3a] hover:border-[#091e3a] hover:bg-white"
-                  }`}
+                  className={`atlas-btn-secondary inline-flex items-center justify-center gap-2.5 border px-5 py-3.5 font-['Outfit'] text-xs font-medium uppercase tracking-[0.16em] ${innerSurface}`}
                 >
-                  <span>Abrir Expediente Nautica Drive</span>
-                  <span className="material-symbols-outlined text-[16px] transition-transform duration-300 group-hover:translate-x-1">
+                  <span>Ver Expediente Nautica Drive</span>
+                  <span className="material-symbols-outlined text-[16px]">
                     folder_open
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => onNavigate("masterplan")}
-                  className="group inline-flex items-center justify-center gap-2 border border-[#755a34] bg-[#755a34]/10 px-5 py-4 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
+                  onClick={() => onNavigate("executive")}
+                  className="border border-[#755a34] px-5 py-3.5 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.16em] text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
                 >
-                  <span>Plan Estratégico 5 Años &amp; 10 Módulos</span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
+                  Ir Directo al Tablero
                 </button>
               </div>
             </div>
 
-            {/* 4 KPIs Interactivos como Botones que abren información detallada */}
-            <div
-              className={`mt-12 grid grid-cols-2 gap-3 border-t pt-8 sm:grid-cols-4 ${
-                isDarkMode ? "border-slate-800" : "border-[#eaedf0]"
-              }`}
-            >
+            {/* 4 KPIs Interactivos Compactos */}
+            <div className="mt-10 grid grid-cols-2 gap-3 border-t border-[#eaedf0]/60 pt-7 sm:grid-cols-4">
               {HERO_KPI_DETAILS.map((kpi) => (
                 <button
                   key={kpi.label}
                   type="button"
                   onClick={() => onOpenOptionDetail(kpi.detail)}
-                  className={`group border p-3.5 text-left transition-all hover:-translate-y-0.5 ${
-                    isDarkMode
-                      ? "border-slate-800 bg-[#0c1524] hover:border-[#00b4f5]"
-                      : "border-[#eaedf0] bg-[#f8f9fa] hover:border-[#091e3a] hover:bg-white"
-                  }`}
+                  className={`group border p-3 text-left transition-all hover:-translate-y-0.5 ${innerSurface}`}
                 >
-                  <span className="block font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-400">
+                  <span className="block font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
                     {kpi.label}
                   </span>
                   <span
-                    className={`mt-1 block font-['Outfit'] text-lg font-semibold tabular-nums sm:text-xl ${kpi.accentClass}`}
+                    className={`mt-1 block font-['Outfit'] text-base font-semibold tabular-nums sm:text-lg ${kpi.accentClass}`}
                   >
                     {kpi.value}
                   </span>
-                  <span className="mt-1.5 inline-flex items-center gap-1 font-['Outfit'] text-[9px] font-semibold uppercase tracking-wider text-[#0077cc]">
-                    <span>Ver desglose</span>
+                  <span className="mt-1 inline-flex items-center gap-1 font-['Outfit'] text-[9px] font-semibold uppercase tracking-wider text-[#0077cc]">
+                    <span>Ver detalle</span>
                     <span className="transition-transform group-hover:translate-x-0.5">
                       →
                     </span>
@@ -643,9 +1268,9 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
             </div>
           </div>
 
-          {/* Columna Derecha: Showcase Escultórico del Emblema Project Atlas */}
+          {/* Columna Derecha: Showcase Limpio de Project Atlas */}
           <div
-            className={`relative flex flex-col items-center justify-center border-t p-10 lg:col-span-5 lg:border-l lg:border-t-0 ${
+            className={`relative flex flex-col items-center justify-center border-t p-8 lg:col-span-5 lg:border-l lg:border-t-0 ${
               isDarkMode
                 ? "border-slate-800 bg-gradient-to-b from-[#0c182b] to-[#070e1a]"
                 : "border-[#eaedf0] bg-gradient-to-b from-[#f8f9fa] via-white to-[#f2f5f9]"
@@ -658,21 +1283,28 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                   id: "atlas-architecture-overview",
                   kicker: "IDENTIDAD INSTITUCIONAL · PROYECTO ATLAS",
                   title: "Proyecto Atlas — Sistema Operativo Inmobiliario",
-                  subtitle: "Banca Privada Inmobiliaria & Sincronización Google Drive",
+                  subtitle:
+                    "Banca Privada Inmobiliaria & Sincronización Google Drive",
                   executiveSummary:
-                    "Diseñado bajo la dirección de Andre Fraga para centralizar la comercialización de desarrollos de alto patrimonio en Cancún y la Riviera Maya con acceso inmediato a toda la documentación técnica, comercial y fiduciaria.",
+                    "Diseñado bajo la dirección de Andre Fraga para centralizar la comercialización de desarrollos de alto patrimonio en México con acceso inmediato a documentación, ROI, CRM y Marketplace.",
                   keyMetrics: [
                     { label: "Dirección General", value: "Andre Fraga (CEO)" },
-                    { label: "Desarrollos Activos", value: `${properties.length} Carteras` },
-                    { label: "Unidades Verificadas", value: `${totalUnitsAvailable} Unidades` },
+                    {
+                      label: "Desarrollos Activos",
+                      value: `${properties.length} Carteras`,
+                    },
+                    {
+                      label: "Unidades Verificadas",
+                      value: `${totalUnitsAvailable} Unidades`,
+                    },
                   ],
                   bulletPoints: [
-                    "Integración completa del expediente Google Drive de Nautica Residences by Naúma y The Villas Collection.",
-                    "Integración de Isla Blanca Residences (Artigas Arquitectos), Hodela Apartments y Prana Towers.",
+                    "Recorrido guiado en 5 pasos para nuevos usuarios.",
+                    "Integración completa de Google Drive para Nautica Residences, The Villas, Isla Blanca, Hodela y Prana.",
                     "Mapa interactivo real con coordenadas GPS y capas satelitales.",
                   ],
                   deliverables: [
-                    "Tablero Ejecutivo",
+                    "Guía Paso a Paso",
                     "Centro Documental 5 Pestañas",
                     "Mapa Satelital Real",
                   ],
@@ -680,728 +1312,202 @@ export const AtlasHomeOverviewView: React.FC<AtlasHomeOverviewViewProps> = ({
                   targetNav: "executive",
                 })
               }
-              className={`animate-atlas-float group relative flex flex-col items-center border p-10 text-center transition-all duration-500 ${
+              className={`animate-atlas-float group relative flex flex-col items-center border p-9 text-center transition-all duration-500 ${
                 isDarkMode
                   ? "border-slate-800 bg-white/95 shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
                   : "border-[#e5e8ec] bg-white shadow-[0_20px_50px_rgba(9,30,58,0.06)] hover:border-[#091e3a]"
               }`}
             >
-              <span className="pointer-events-none absolute left-2.5 top-2.5 h-3 w-3 border-l border-t border-[#091e3a]/30" />
-              <span className="pointer-events-none absolute right-2.5 top-2.5 h-3 w-3 border-r border-t border-[#091e3a]/30" />
-              <span className="pointer-events-none absolute bottom-2.5 left-2.5 h-3 w-3 border-b border-l border-[#091e3a]/30" />
-              <span className="pointer-events-none absolute bottom-2.5 right-2.5 h-3 w-3 border-b border-r border-[#091e3a]/30" />
-
               <AtlasBrandLogo
                 variant="full"
                 theme="light"
-                className="h-44 w-auto sm:h-52"
+                className="h-40 w-auto sm:h-48"
               />
               <span className="mt-4 font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.2em] text-[#0077cc] group-hover:underline">
-                Clic para ver Ficha Institucional del Sistema →
+                Clic para ver Ficha del Sistema →
               </span>
             </button>
-
-            <div className="mt-6 text-center">
-              <p className="font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.28em] text-neutral-400">
-                SISTEMA OPERATIVO INMOBILIARIO · MÉXICO
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
       {/* =====================================================================
-          2. CARTA EDITORIAL & LIDERAZGO — ANDRE FRAGA (CON BOTONES DE DETALLE)
+          2. NAVEGADOR POR PASOS PARA NUEVOS USUARIOS (INTERACTIVO Y LIMPIO)
       ====================================================================== */}
-      <ScrollRevealSection delayMs={60}>
-        <section
-          className={`border p-7 sm:p-12 lg:p-14 ${
-            isDarkMode
-              ? "border-[#1e2f48] bg-[#0c1524] text-white"
-              : "border-[#e2e6ec] bg-white text-[#091e3a]"
-          }`}
-        >
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
-            {/* Retrato Editorial Compacto */}
-            <div className="flex flex-col items-center lg:col-span-4 lg:items-start">
-              <div className="flex flex-col items-center lg:items-start">
-                <div
-                  className={`border p-2.5 transition-all duration-500 ${
-                    isDarkMode
-                      ? "border-slate-700 bg-[#091322]"
-                      : "border-[#d8dee6] bg-[#f8f9fa]"
-                  }`}
-                >
-                  <div className="h-56 w-44 overflow-hidden sm:h-64 sm:w-52">
-                    <img
-                      src="/andre-fraga-ceo.jpg"
-                      alt="Andre Fraga — CEO de Proyecto Atlas"
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover object-top transition-transform duration-700 hover:scale-105"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4 text-center lg:text-left">
-                  <div className="font-['Outfit'] text-base font-semibold tracking-wide">
-                    Andre Fraga
-                  </div>
-                  <div className="mt-0.5 font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.24em] text-[#0077cc]">
-                    CEO &amp; Founder · Proyecto Atlas
-                  </div>
-                  <div className="mx-auto mt-2 h-[1px] w-12 bg-[#755a34] lg:mx-0" />
-                </div>
-              </div>
-            </div>
-
-            {/* Columna Editorial de Visión y Botones de Tesis */}
-            <div className="lg:col-span-8">
-              <div className="flex items-center gap-3">
-                <span className="h-[1px] w-8 bg-[#755a34]" />
-                <span className="font-['Outfit'] text-[11px] font-medium uppercase tracking-[0.26em] text-[#755a34]">
-                  DIRECCIÓN EJECUTIVA &amp; TESIS DE LA PLATAFORMA
-                </span>
-              </div>
-
-              <h2 className="mt-4 font-['Outfit'] text-2xl font-light leading-snug tracking-tight sm:text-3xl">
-                “Toda la información crítica de cada desarrollo —{" "}
-                <span className="font-semibold">
-                  renders, brochures, inventario, planes de pago y fichas técnicas
-                </span>
-                — disponible en un solo clic.”
-              </h2>
-
-              <div
-                className={`mt-5 grid grid-cols-1 gap-6 text-xs leading-[1.85] sm:grid-cols-2 sm:text-sm ${
-                  isDarkMode ? "text-slate-300" : "text-neutral-600"
-                }`}
-              >
-                <p>
-                  Bajo la dirección de <strong>Andre Fraga</strong>,{" "}
-                  <strong>Proyecto Atlas</strong> integra directamente los expedientes de Google Drive de desarrollos insignia como{" "}
-                  <strong>Nautica Residences by Naúma</strong>,{" "}
-                  <strong>The Villas Collection</strong>,{" "}
-                  <strong>Isla Blanca Residences</strong>,{" "}
-                  <strong>Hodela Apartments</strong> y{" "}
-                  <strong>Prana Towers</strong>.
-                </p>
-                <p>
-                  Cada opción de la plataforma funciona como un módulo interactivo donde el broker o inversionista puede abrir las listas de precios vigentes, simular descuentos por enganche (hasta 8% y 10%) y consultar las plantas arquitectónicas ambientadas sin salir del sistema.
-                </p>
-              </div>
-
-              {/* Botones interactivos de la Dirección Ejecutiva */}
-              <div
-                className={`mt-7 flex flex-wrap items-center justify-between gap-3 border-t pt-5 ${
-                  isDarkMode ? "border-slate-800" : "border-[#eaedf0]"
-                }`}
-              >
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onOpenOptionDetail({
-                        id: "ceo-mandate",
-                        kicker: "DIRECCIÓN EJECUTIVA · ANDRE FRAGA",
-                        title: "Tesis Patrimonial & Estándar Operativo de Proyecto Atlas",
-                        subtitle: "Transparencia Documental y Ejecución Comercial en Cancún & Riviera Maya",
-                        executiveSummary:
-                          "La oficina de Andre Fraga establece un protocolo de curaduría donde ningún activo se presenta sin su respaldo documental completo: brochures oficiales, inventario auditado por nivel, política de descuentos vigente y fichas técnicas verificadas.",
-                        keyMetrics: [
-                          { label: "CEO & Founder", value: "Andre Fraga" },
-                          { label: "Enfoque", value: "Private Wealth Real Estate" },
-                          { label: "Sede Operativa", value: "Cancún & Riviera Maya" },
-                        ],
-                        bulletPoints: [
-                          "Acceso directo en mano a toda la carpeta de Google Drive de Nautica Residences by Naúma.",
-                          "Simulación transparente de planes de pago (30/70, 30/40/30, 50/30/20, 80/20 y 90/10).",
-                          "Acompañamiento integral desde el apartado hasta la firma de escritura o fideicomiso.",
-                        ],
-                        deliverables: [
-                          "Dossier Institucional Personalizado",
-                          "Recorridos VIP & Showroom",
-                          "Mesa de Cierre Jurídico",
-                        ],
-                        actionLabel: "Abrir Tablero Ejecutivo",
-                        targetNav: "executive",
-                      })
-                    }
-                    className="border border-[#091e3a] bg-[#091e3a] px-4 py-2 font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
-                  >
-                    Ver Tesis de Dirección (Andre Fraga) →
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onOpenDossier(properties[0], "PAYMENT_PLANS")}
-                    className="border border-[#755a34] bg-[#755a34]/10 px-4 py-2 font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
-                  >
-                    Ver Planes de Pago Nautica (Hasta 8% Desc.) →
-                  </button>
-                </div>
-
-                {onOpenExitConcierge && (
-                  <button
-                    type="button"
-                    onClick={onOpenExitConcierge}
-                    className="group inline-flex items-center gap-2 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-[#0077cc] transition hover:text-[#755a34]"
-                  >
-                    <span>Solicitar Presentación Ejecutiva</span>
-                    <span className="material-symbols-outlined text-[15px] transition-transform duration-300 group-hover:translate-x-1">
-                      east
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-      </ScrollRevealSection>
-
-      {/* =====================================================================
-          3. EXPEDIENTE INTERACTIVO DE DESARROLLOS (GOOGLE DRIVE EN MANO)
-      ====================================================================== */}
-      <ScrollRevealSection delayMs={80}>
-        <section
-          className={`border p-7 sm:p-10 ${
-            isDarkMode
-              ? "border-[#1e2f48] bg-[#0c1524]"
-              : "border-[#e2e6ec] bg-white"
-          }`}
-        >
-          <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0] pb-6 sm:flex-row sm:items-end">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="h-[1px] w-8 bg-[#755a34]" />
-                <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#755a34]">
-                  EXPEDIENTES GOOGLE DRIVE SINCRONIZADOS EN MANO
-                </span>
-              </div>
-              <h3
-                className={`mt-2 font-['Outfit'] text-2xl font-semibold tracking-tight ${
-                  isDarkMode ? "text-white" : "text-[#091e3a]"
-                }`}
-              >
-                Desarrollos en Cartera — Fotos, Brochure, Inventario, Planes de Pago y Fichas Técnicas
-              </h3>
-              <p className="mt-1 text-xs text-neutral-500">
-                Haz clic en cualquiera de los botones de cada desarrollo para abrir directamente su módulo documental.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onNavigate("inventory")}
-              className="atlas-btn-secondary group inline-flex items-center gap-2 self-start border border-[#091e3a] bg-[#091e3a] px-5 py-2.5 font-['Outfit'] text-xs font-medium uppercase tracking-[0.18em] text-white"
-            >
-              <span>Ver Catálogo Completo ({properties.length})</span>
-              <span className="material-symbols-outlined text-[15px] transition-transform duration-300 group-hover:translate-x-1">
-                east
-              </span>
-            </button>
-          </div>
-
-          <div className="mt-7 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {properties.map((prop) => {
-              const imgUrl = prop.customImageUrl ?? prop.defaultImageUrl;
-              return (
-                <article
-                  key={prop.id}
-                  className={`group flex flex-col justify-between border transition-all duration-300 hover:-translate-y-1 ${
-                    isDarkMode
-                      ? "border-slate-800 bg-[#091322]"
-                      : "border-[#eaedf0] bg-[#f8f9fa]"
-                  }`}
-                >
-                  <div>
-                    <div
-                      onClick={() => onOpenDossier(prop, "GALLERY")}
-                      className="relative h-56 cursor-pointer overflow-hidden bg-neutral-900"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={prop.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute left-3 top-3 flex items-center gap-2">
-                        <span className="bg-[#091e3a]/90 px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white">
-                          {prop.zone}
-                        </span>
-                        <span className="bg-[#004044] px-2.5 py-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-white">
-                          ROI {prop.roiAnnualPct}%
-                        </span>
-                      </div>
-                      <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
-                        <div>
-                          <span className="font-['Outfit'] text-[10px] uppercase tracking-[0.2em] text-[#00b4f5]">
-                            {prop.code} · {prop.availableUnits} UNIDADES
-                          </span>
-                          <h4 className="font-['Outfit'] text-lg font-bold leading-snug">
-                            {prop.name}
-                          </h4>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-5">
-                      <div className="flex items-baseline justify-between">
-                        <span className="font-['Outfit'] text-[10px] uppercase tracking-wider text-neutral-400">
-                          Precio Desde
-                        </span>
-                        <span
-                          className={`font-['Outfit'] text-base font-bold ${
-                            isDarkMode ? "text-white" : "text-[#091e3a]"
-                          }`}
-                        >
-                          {formatSovereignCurrency(prop.priceUsd, currency)}
-                        </span>
-                      </div>
-                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-neutral-500">
-                        {prop.subtitle}
-                      </p>
-
-                      {/* Botonera Directa a las 5 Secciones del Google Drive del Desarrollo */}
-                      <div className="mt-4 pt-3 border-t border-[#eaedf0]/60">
-                        <span className="block font-['Outfit'] text-[9px] font-semibold uppercase tracking-[0.2em] text-[#755a34]">
-                          ABRIR INFORMACIÓN DEL GOOGLE DRIVE EN MANO:
-                        </span>
-                        <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                          <button
-                            type="button"
-                            onClick={() => onOpenDossier(prop, "GALLERY")}
-                            className="border border-[#091e3a]/20 bg-white px-2.5 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
-                          >
-                            Fotos ({prop.galleryImages?.length ?? 1})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onOpenDossier(prop, "BROCHURES")}
-                            className="border border-[#091e3a]/20 bg-white px-2.5 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
-                          >
-                            Brochure ({prop.brochures?.length ?? 1})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onOpenDossier(prop, "INVENTORY")}
-                            className="border border-[#091e3a]/20 bg-white px-2.5 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#091e3a] transition hover:bg-[#091e3a] hover:text-white"
-                          >
-                            Inventario ({prop.inventoryUnits?.length ?? prop.availableUnits})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onOpenDossier(prop, "PAYMENT_PLANS")}
-                            className="border border-[#755a34]/40 bg-[#faeedd]/50 px-2.5 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] transition hover:bg-[#755a34] hover:text-white"
-                          >
-                            Planes Pago ({prop.paymentPlans?.length ?? 1})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onOpenDossier(prop, "TECH_SPECS")}
-                            className="col-span-2 sm:col-span-1 border border-[#0077cc]/30 bg-[#0077cc]/5 px-2.5 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#0077cc] transition hover:bg-[#0077cc] hover:text-white"
-                          >
-                            Fichas Técnicas
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-[#eaedf0] px-5 py-3">
-                    <a
-                      href={prop.driveFolderUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-neutral-500 hover:text-[#0077cc]"
-                    >
-                      Google Drive Oficial ↗
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => onOpenDossier(prop, "INVENTORY")}
-                      className="font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider text-[#0077cc] hover:text-[#755a34]"
-                    >
-                      Expediente Completo →
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      </ScrollRevealSection>
-
-      {/* =====================================================================
-          4. MAPA REAL E INTERACTIVO DEL CORREDOR CANCÚN — RIVIERA MAYA
-      ====================================================================== */}
-      <ScrollRevealSection delayMs={95}>
-        <section
-          className={`border p-7 sm:p-10 ${
-            isDarkMode
-              ? "border-[#1e2f48] bg-[#091322] text-white"
-              : "border-[#e2e6ec] bg-[#091e3a] text-white"
-          }`}
-        >
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-white/15 pb-4">
-            <div>
-              <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#00b4f5]">
-                GEOLOCALIZACIÓN REAL EN VIVO · LEAFLET &amp; SATÉLITE ESRI
-              </span>
-              <h3 className="mt-1 font-['Outfit'] text-2xl font-semibold tracking-tight text-white">
-                Mapa Real Interactivo de Desarrollos — Cancún, Huayacán y Playa del Carmen
-              </h3>
-              <p className="mt-1 text-xs text-slate-300">
-                Haz zoom, navega por el mapa satelital o selecciona un desarrollo para volar a su ubicación exacta y abrir su expediente de Google Drive.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {properties.map((p) => {
-                const active = selectedMapProperty?.id === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setSelectedMapProperty(p)}
-                    className={`px-3 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider transition ${
-                      active
-                        ? "bg-[#755a34] text-white"
-                        : "border border-white/20 bg-white/5 text-slate-300 hover:bg-white/15"
-                    }`}
-                  >
-                    {p.name.split("—")[0].split("(")[0].trim()}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <RealInteractiveMap
-            properties={properties}
-            selectedProperty={selectedMapProperty}
-            currency={currency}
-            onSelectProperty={(p) => setSelectedMapProperty(p)}
-            onOpenDossier={(p) => onOpenDossier(p, "GALLERY")}
-          />
-        </section>
-      </ScrollRevealSection>
-
-      {/* =====================================================================
-          5. LAS 4 DISCIPLINAS COMO BOTONES DE INFORMACIÓN DETALLADA
-      ====================================================================== */}
-      <ScrollRevealSection delayMs={110}>
-        <section className="space-y-6">
-          <div className="flex flex-col justify-between gap-3 border-b border-[#eaedf0] pb-5 sm:flex-row sm:items-end">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="h-[1px] w-8 bg-[#0077cc]" />
-                <span className="font-['Outfit'] text-[11px] font-medium uppercase tracking-[0.26em] text-[#0077cc]">
-                  ECOSISTEMA INTEGRAL INTERACTIVO
-                </span>
-              </div>
-              <h2
-                className={`mt-2 font-['Outfit'] text-2xl font-semibold tracking-tight sm:text-3xl ${
-                  isDarkMode ? "text-white" : "text-[#091e3a]"
-                }`}
-              >
-                Las Cuatro Disciplinas de Proyecto Atlas
-              </h2>
-            </div>
-            <p className="font-['Outfit'] text-xs uppercase tracking-[0.18em] text-neutral-400">
-              Haz clic en cualquier opción para abrir su ficha técnica detallada
+      <div ref={stepAnchorRef} className={`border p-6 sm:p-8 ${cardSurface}`}>
+        <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0]/60 pb-5 lg:flex-row lg:items-center">
+          <div>
+            <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.24em] text-[#0077cc]">
+              RECORRIDO GUIADO PARA NUEVOS USUARIOS · 5 PASOS
+            </span>
+            <h2 className="mt-1 font-['Outfit'] text-xl font-semibold sm:text-2xl">
+              {viewMode === "GUIDED_STEPS"
+                ? activeStepMeta.fullTitle
+                : "Vista Completa — Los 5 Pasos de Proyecto Atlas"}
+            </h2>
+            <p className="mt-1 text-xs text-neutral-500">
+              {viewMode === "GUIDED_STEPS"
+                ? activeStepMeta.subtitle
+                : "Visualizando todos los pasos en secuencia vertical. Puedes volver al modo paso a paso en cualquier momento."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {PLATFORM_DISCIPLINES.map((item) => (
-              <button
-                key={item.numeral}
-                type="button"
-                onClick={() => onOpenOptionDetail(item.detail)}
-                className={`group flex flex-col justify-between border p-7 text-left transition-all duration-300 hover:-translate-y-1 ${
-                  isDarkMode
-                    ? "border-[#1e2f48] bg-[#0c1524] hover:border-[#00b4f5]"
-                    : "border-[#e2e6ec] bg-white hover:border-[#091e3a] hover:shadow-[0_16px_40px_rgba(9,30,58,0.06)]"
-                }`}
-              >
-                <div className="w-full">
-                  <div className="flex items-baseline justify-between border-b border-[#eaedf0] pb-4">
-                    <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.24em] text-[#755a34]">
-                      {item.category}
-                    </span>
-                    <span className="font-['Outfit'] text-lg font-light tracking-widest text-neutral-400">
-                      {item.numeral}
-                    </span>
-                  </div>
-
-                  <h3
-                    className={`mt-5 font-['Outfit'] text-lg font-semibold tracking-tight sm:text-xl ${
-                      isDarkMode ? "text-white" : "text-[#091e3a]"
-                    }`}
-                  >
-                    {item.title}
-                  </h3>
-
-                  <p
-                    className={`mt-3 text-xs leading-[1.8] sm:text-sm ${
-                      isDarkMode ? "text-slate-300" : "text-neutral-600"
-                    }`}
-                  >
-                    {item.description}
-                  </p>
-                </div>
-
-                <div className="mt-6 flex w-full items-center justify-between border-t border-[#eaedf0]/50 pt-4">
-                  <span className="font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-[#0077cc]">
-                    {item.actionLabel}
-                  </span>
-                  <span className="material-symbols-outlined text-[17px] text-[#0077cc] transition-transform duration-300 group-hover:translate-x-1.5">
-                    east
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      </ScrollRevealSection>
-
-      {/* =====================================================================
-          5.B PLAN ESTRATÉGICO (PRIMEROS 5 AÑOS) — ROADMAP & 10 MÓDULOS CORE
-      ====================================================================== */}
-      <ScrollRevealSection delayMs={125}>
-        <section
-          className={`border p-7 sm:p-10 ${
-            isDarkMode
-              ? "border-[#1e2f48] bg-[#0c1524] text-white"
-              : "border-[#e2e6ec] bg-white text-[#091e3a]"
-          }`}
-        >
-          <div className="flex flex-col justify-between gap-4 border-b border-[#eaedf0] pb-6 lg:flex-row lg:items-end">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="h-[1px] w-8 bg-[#755a34]" />
-                <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#755a34]">
-                  ATLAS REAL ESTATE · PLAN ESTRATÉGICO (PRIMEROS 5 AÑOS)
-                </span>
-              </div>
-              <h2 className="mt-2 font-['Outfit'] text-2xl font-semibold tracking-tight sm:text-3xl">
-                Sistema Operativo Inmobiliario: Roadmap a 5 Años &amp; 10 Módulos Principales
-              </h2>
-              <p className="mt-1 max-w-3xl text-xs leading-relaxed text-neutral-500">
-                Centralizamos captación, inventario, análisis, venta, postventa y administración mediante IA, un Marketplace de 8 verticales certificadas y un Portal para Desarrolladores en tiempo real.
-              </p>
-            </div>
-
+          {/* Toggle entre Modo Paso a Paso (Recomendado) y Vista Completa */}
+          <div className="flex shrink-0 items-center gap-1.5 border border-[#eaedf0] p-1">
             <button
               type="button"
-              onClick={() => onNavigate("masterplan")}
-              className="self-start bg-[#091e3a] px-5 py-3 font-['Outfit'] text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#0077cc]"
+              onClick={() => setViewMode("GUIDED_STEPS")}
+              className={`px-3 py-1.5 font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider transition ${
+                viewMode === "GUIDED_STEPS"
+                  ? "bg-[#091e3a] text-white"
+                  : "text-neutral-500 hover:text-current"
+              }`}
             >
-              Abrir Plan Estratégico Completo &amp; Simulador MRR →
+              Paso a Paso (Recomendado)
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("FULL_OVERVIEW")}
+              className={`px-3 py-1.5 font-['Outfit'] text-[11px] font-semibold uppercase tracking-wider transition ${
+                viewMode === "FULL_OVERVIEW"
+                  ? "bg-[#091e3a] text-white"
+                  : "text-neutral-500 hover:text-current"
+              }`}
+            >
+              Ver Todo
             </button>
           </div>
+        </div>
 
-          {/* Los 5 Años del Roadmap como Botones Interactivos */}
-          <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-5">
-            {STRATEGIC_5Y_ROADMAP.map((yr) => (
+        {/* Barra de los 5 Pasos */}
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-5">
+          {STEPS_META.map((step) => {
+            const isActive =
+              viewMode === "GUIDED_STEPS" && currentStep === step.id;
+            const isCompleted =
+              viewMode === "GUIDED_STEPS" && currentStep > step.id;
+            return (
               <button
-                key={yr.key}
+                key={step.id}
                 type="button"
-                onClick={() =>
-                  onOpenOptionDetail({
-                    id: `home-roadmap-${yr.key}`,
-                    kicker: `ROADMAP ESTRATÉGICO · ${yr.label}`,
-                    title: `${yr.label}: ${yr.phaseTitle}`,
-                    subtitle: yr.subtitle,
-                    executiveSummary: yr.executiveThesis,
-                    keyMetrics: [
-                      {
-                        label: "Usuarios Meta",
-                        value: yr.kpis.registeredUsers,
-                      },
-                      {
-                        label: "Desarrollos",
-                        value: yr.kpis.publishedDevelopments,
-                      },
-                      {
-                        label: "MRR Proyectado",
-                        value: formatSovereignCurrency(
-                          yr.kpis.mrrUsd,
-                          currency
-                        ),
-                      },
-                    ],
-                    bulletPoints: yr.deliverables.map(
-                      (d) => `${d.title}: ${d.detail}`
-                    ),
-                    deliverables: yr.deliverables.map((d) => d.title),
-                    actionLabel: yr.actionButtonLabel,
-                    targetNav: yr.targetNav,
-                  })
-                }
-                className={`group flex flex-col justify-between border p-5 text-left transition hover:-translate-y-1 ${
-                  isDarkMode
-                    ? "border-slate-800 bg-[#091322] hover:border-[#00b4f5]"
-                    : "border-[#eaedf0] bg-[#f8f9fa] hover:border-[#091e3a] hover:bg-white"
+                onClick={() => {
+                  setViewMode("GUIDED_STEPS");
+                  setCurrentStep(step.id);
+                }}
+                className={`flex flex-col justify-between border p-3.5 text-left transition ${
+                  isActive
+                    ? "border-[#091e3a] bg-[#091e3a] text-white shadow-md"
+                    : isCompleted
+                    ? "border-emerald-600/40 bg-emerald-50/40 text-[#091e3a]"
+                    : isDarkMode
+                    ? "border-slate-800 bg-[#091322] text-slate-300 hover:border-[#00b4f5]"
+                    : "border-[#eaedf0] bg-[#f8f9fa] text-[#091e3a] hover:border-[#091e3a]"
                 }`}
               >
-                <div>
-                  <span className="font-['Outfit'] text-[10px] font-bold uppercase tracking-[0.2em] text-[#0077cc]">
-                    {yr.label}
-                  </span>
-                  <h3 className="mt-1.5 font-['Outfit'] text-sm font-semibold">
-                    {yr.phaseTitle}
-                  </h3>
-                  <ul className="mt-3 space-y-1 text-[11px] text-neutral-500">
-                    {yr.deliverables.map((deliv) => (
-                      <li key={deliv.title} className="flex items-start gap-1">
-                        <span className="text-[#755a34]">▪</span>
-                        <span>{deliv.title}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <span className="mt-4 inline-flex items-center gap-1 font-['Outfit'] text-[10px] font-semibold uppercase tracking-wider text-[#755a34] group-hover:underline">
-                  <span>Ver Entregables &amp; KPIs</span>
-                  <span>→</span>
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Botonera Directa a los 10 Módulos Principales */}
-          <div className="mt-7 border-t border-[#eaedf0] pt-6">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#0077cc]">
-                ACCESO DIRECTO A LOS 10 MÓDULOS PRINCIPALES DE ATLAS REAL ESTATE
-              </span>
-              <span className="font-['Outfit'] text-[10px] uppercase tracking-wider text-neutral-400">
-                Clic para abrir cualquier módulo
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-              {TEN_CORE_MODULES.map((mod) => (
-                <button
-                  key={mod.number}
-                  type="button"
-                  onClick={() => onNavigate(mod.targetNav)}
-                  className={`flex flex-col justify-between border p-3.5 text-left transition hover:border-[#091e3a] ${
-                    isDarkMode
-                      ? "border-slate-800 bg-[#091322] text-white"
-                      : "border-[#eaedf0] bg-white text-[#091e3a]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-['Outfit'] text-xs font-bold text-[#755a34]">
-                      {mod.number}
-                    </span>
-                    <span className="font-['Outfit'] text-[9px] uppercase tracking-wider text-neutral-400">
-                      {mod.yearIntroduced}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 font-['Outfit'] text-xs font-semibold">
-                    {mod.title}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      </ScrollRevealSection>
-
-      {/* =====================================================================
-          6. CERTIFICADOS Y SELLOS CONFIABLES (BOTONES CON DETALLE JURÍDICO)
-      ====================================================================== */}
-      <ScrollRevealSection delayMs={140}>
-        <section
-          className={`border p-7 sm:p-10 ${
-            isDarkMode
-              ? "border-[#1e2f48] bg-[#091322]"
-              : "border-[#e2e6ec] bg-white"
-          }`}
-        >
-          <div className="flex flex-col justify-between gap-2 border-b border-[#eaedf0] pb-5 sm:flex-row sm:items-end">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="h-[1px] w-8 bg-[#004044]" />
-                <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.26em] text-[#004044]">
-                  RESPALDO REGULATORIO &amp; CERTEZA INSTITUCIONAL
-                </span>
-              </div>
-              <h3
-                className={`mt-2 font-['Outfit'] text-xl font-semibold tracking-tight sm:text-2xl ${
-                  isDarkMode ? "text-white" : "text-[#091e3a]"
-                }`}
-              >
-                Certificados, Normativas y Sellos de Confianza
-              </h3>
-            </div>
-            <span className="font-['Outfit'] text-[11px] uppercase tracking-wider text-neutral-400">
-              Selecciona cualquier sello para abrir el protocolo legal
-            </span>
-          </div>
-
-          <div className="mt-7 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TRUST_CERTIFICATES.map((cert) => (
-              <button
-                key={cert.code}
-                type="button"
-                onClick={() => onOpenOptionDetail(cert.modalDetail)}
-                className={`group flex flex-col justify-between border p-5 text-left transition-all hover:-translate-y-1 ${
-                  isDarkMode
-                    ? "border-slate-800 bg-[#0c1524] hover:border-[#00b4f5]"
-                    : "border-[#eaedf0] bg-[#f8f9fa] hover:border-[#091e3a] hover:bg-white hover:shadow-md"
-                }`}
-              >
-                <div className="w-full">
-                  <div className="flex items-center justify-between border-b border-[#eaedf0] pb-3">
-                    <svg
-                      className="h-7 w-7 text-[#0077cc]"
-                      viewBox="0 0 32 32"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                    >
-                      <polygon points="16,2 28,8 28,20 16,30 4,20 4,8" />
-                      <polyline points="11,16 14.5,19.5 21,12.5" />
-                    </svg>
-                    <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#755a34]">
-                      {cert.code}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 font-['Outfit'] text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
-                    {cert.authority}
-                  </div>
-                  <h4
-                    className={`mt-1 font-['Outfit'] text-sm font-semibold ${
-                      isDarkMode ? "text-white" : "text-[#091e3a]"
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`font-['Outfit'] text-[10px] font-bold uppercase tracking-widest ${
+                      isActive ? "text-[#00b4f5]" : "text-[#755a34]"
                     }`}
                   >
-                    {cert.title}
-                  </h4>
-                  <p className="mt-2 text-xs leading-relaxed text-neutral-500">
-                    {cert.detail}
-                  </p>
+                    Paso 0{step.id}
+                  </span>
+                  {isCompleted && (
+                    <span className="font-['Outfit'] text-[10px] font-bold text-emerald-700">
+                      ✓
+                    </span>
+                  )}
                 </div>
-
-                <div className="mt-4 flex w-full items-center justify-between border-t border-[#eaedf0] pt-2.5">
-                  <span className="font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0077cc]">
-                    Abrir Protocolo Detallado
-                  </span>
-                  <span className="text-xs text-[#0077cc] transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                <div className="mt-1.5 font-['Outfit'] text-xs font-semibold">
+                  {step.shortTitle}
+                </div>
+                <div
+                  className={`mt-1 text-[10px] ${
+                    isActive ? "text-slate-300" : "text-neutral-400"
+                  }`}
+                >
+                  {step.outcomeLabel}
                 </div>
               </button>
-            ))}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* =====================================================================
+          3. CONTENIDO DEL PASO ACTUAL (O VISTA COMPLETA SI EL USUARIO LO ELIGE)
+      ====================================================================== */}
+      {viewMode === "GUIDED_STEPS" ? (
+        <div className="space-y-6">
+          {currentStep === 1 && renderStep1WelcomeAndProfile()}
+          {currentStep === 2 && renderStep2DevelopmentsAndDrive()}
+          {currentStep === 3 && renderStep3MapAndAnalysis()}
+          {currentStep === 4 && renderStep4OperationsAndMarketplace()}
+          {currentStep === 5 && renderStep5MasterplanAndModules()}
+
+          {/* Controles Inferiores Anterior / Siguiente Paso */}
+          <div
+            className={`flex flex-wrap items-center justify-between gap-4 border p-5 ${cardSurface}`}
+          >
+            <button
+              type="button"
+              disabled={currentStep === 1}
+              onClick={() =>
+                handleSelectStep(
+                  Math.max(1, currentStep - 1) as OnboardingStepId
+                )
+              }
+              className="border border-[#eaedf0] px-4 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-40 hover:border-[#091e3a]"
+            >
+              ← Paso Anterior
+            </button>
+
+            <span className="font-['Outfit'] text-xs font-medium text-neutral-500">
+              Paso {currentStep} de 5 · {activeStepMeta.shortTitle}
+            </span>
+
+            {currentStep < 5 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  handleSelectStep(
+                    Math.min(5, currentStep + 1) as OnboardingStepId
+                  )
+                }
+                className="bg-[#091e3a] px-5 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0077cc]"
+              >
+                Continuar al Paso {currentStep + 1} →
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onNavigate("executive")}
+                className="bg-[#004044] px-5 py-2.5 font-['Outfit'] text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#091e3a]"
+              >
+                Finalizar Guía e Ir al Tablero Ejecutivo →
+              </button>
+            )}
           </div>
-        </section>
-      </ScrollRevealSection>
+        </div>
+      ) : (
+        <div className="space-y-12">
+          <ScrollRevealSection delayMs={40}>
+            {renderStep1WelcomeAndProfile()}
+          </ScrollRevealSection>
+          <ScrollRevealSection delayMs={60}>
+            {renderStep2DevelopmentsAndDrive()}
+          </ScrollRevealSection>
+          <ScrollRevealSection delayMs={80}>
+            {renderStep3MapAndAnalysis()}
+          </ScrollRevealSection>
+          <ScrollRevealSection delayMs={100}>
+            {renderStep4OperationsAndMarketplace()}
+          </ScrollRevealSection>
+          <ScrollRevealSection delayMs={120}>
+            {renderStep5MasterplanAndModules()}
+          </ScrollRevealSection>
+        </div>
+      )}
     </div>
   );
 };

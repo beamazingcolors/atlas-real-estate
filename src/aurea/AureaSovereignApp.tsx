@@ -506,19 +506,19 @@ export const AureaSovereignApp: React.FC = () => {
     );
   };
 
-  // Secciones del Sidebar (sin badges ni dots, solo tipografía y cifras limpias)
+  // Secciones del Sidebar organizadas por flujo paso a paso para nuevos usuarios
   const navGroups: {
     groupTitle: string;
     items: { id: NavSectionId; label: string; icon: string; meta?: string }[];
   }[] = [
     {
-      groupTitle: "DIRECCIÓN & ESTRATEGIA",
+      groupTitle: "BIENVENIDA & RUTA",
       items: [
         {
           id: "home",
-          label: "Inicio · Proyecto Atlas",
+          label: "Guía Paso a Paso · Atlas",
           icon: "home_work",
-          meta: "I",
+          meta: "5 Pasos",
         },
         {
           id: "masterplan",
@@ -529,31 +529,14 @@ export const AureaSovereignApp: React.FC = () => {
       ],
     },
     {
-      groupTitle: "OPERACIONES",
+      groupTitle: "PASO 1 · EXPLORAR & ANALIZAR",
       items: [
-        {
-          id: "executive",
-          label: "Tablero Ejecutivo",
-          icon: "space_dashboard",
-        },
         {
           id: "inventory",
           label: "Inventario de Desarrollos",
           icon: "apartment",
           meta: `${properties.length}`,
         },
-        {
-          id: "crm",
-          label: "CRM Inmobiliario",
-          icon: "view_kanban",
-          meta: `${prospects.length}`,
-        },
-        { id: "clients", label: "Portal para Clientes", icon: "groups" },
-      ],
-    },
-    {
-      groupTitle: "INTELIGENCIA & ANÁLISIS",
-      items: [
         {
           id: "comparator",
           label: "Comparador Inteligente",
@@ -573,8 +556,30 @@ export const AureaSovereignApp: React.FC = () => {
       ],
     },
     {
-      groupTitle: "ECOSISTEMA & MARKETPLACE",
+      groupTitle: "PASO 2 · OPERAR & VENDER",
       items: [
+        {
+          id: "executive",
+          label: "Tablero Ejecutivo",
+          icon: "space_dashboard",
+        },
+        {
+          id: "crm",
+          label: "CRM Inmobiliario",
+          icon: "view_kanban",
+          meta: `${prospects.length}`,
+        },
+        { id: "clients", label: "Portal para Clientes", icon: "groups" },
+      ],
+    },
+    {
+      groupTitle: "PASO 3 · CERRAR & ECOSISTEMA",
+      items: [
+        {
+          id: "drives",
+          label: "Gestión Documental & Drives",
+          icon: "folder_managed",
+        },
         {
           id: "directory",
           label: "Marketplace de Servicios",
@@ -590,11 +595,6 @@ export const AureaSovereignApp: React.FC = () => {
           id: "agency",
           label: "Suite Agencia Multi-Broker",
           icon: "corporate_fare",
-        },
-        {
-          id: "drives",
-          label: "Gestión Documental & Drives",
-          icon: "folder_managed",
         },
       ],
     },
@@ -1088,6 +1088,52 @@ export const AureaSovereignApp: React.FC = () => {
             key={activeNav}
             className="animate-view-transition mx-auto max-w-[1440px] p-4 sm:p-8"
           >
+            {activeNav !== "home" && (
+              <div
+                className={`mb-6 flex flex-wrap items-center justify-between gap-3 border px-4 py-3 ${
+                  isDarkMode
+                    ? "border-[#1d2d44] bg-[#0b1322] text-white"
+                    : "border-[#eaedf0] bg-white text-[#091e3a]"
+                }`}
+              >
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectNav("home")}
+                    className="font-['Outfit'] font-semibold uppercase tracking-[0.14em] text-[#755a34] transition-colors hover:text-[#0077cc]"
+                  >
+                    Guía Paso a Paso · Atlas
+                  </button>
+                  <span className="text-neutral-400">/</span>
+                  <span className="font-['Outfit'] text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                    {navGroups.find((g) =>
+                      g.items.some((it) => it.id === activeNav),
+                    )?.groupTitle || "MÓDULO"}
+                  </span>
+                  <span className="text-neutral-400">/</span>
+                  <span className="font-['Outfit'] text-xs font-semibold">
+                    {navGroups
+                      .flatMap((g) => g.items)
+                      .find((it) => it.id === activeNav)?.label || activeNav}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectNav("home")}
+                  className={`btn-atlas-micro inline-flex items-center gap-1.5 border px-3 py-1.5 font-['Outfit'] text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                    isDarkMode
+                      ? "border-[#2a3f5f] bg-[#0f1a2d] text-[#e2e8f0] hover:border-[#755a34]"
+                      : "border-[#d8dee6] bg-[#f8f9fa] text-[#091e3a] hover:border-[#091e3a]"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    arrow_back
+                  </span>
+                  Volver a la Guía Paso a Paso
+                </button>
+              </div>
+            )}
+
             {activeNav === "home" && (
               <AtlasHomeOverviewView
                 properties={properties}
